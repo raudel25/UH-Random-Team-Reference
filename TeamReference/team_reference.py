@@ -41,7 +41,6 @@ def build_codes(l):
             aux.append((file[:-4], c))
 
         if len(aux) != 0:
-            print(section)
             codes.append(('Template' if section ==
                           '.' else os.path.basename(section), aux))
 
@@ -95,5 +94,4 @@ def build_reference(l):
 
 l = find_files('.', '.cpp')
 l = build_codes(l)
-print(len(l))
 build_reference(l)
