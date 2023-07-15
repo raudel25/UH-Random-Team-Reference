@@ -1,0 +1,46 @@
+\documentclass[leter]{amsart}
+\usepackage[pdftex]{geometry}
+\usepackage[utf8]{inputenc}
+
+\usepackage{listings}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{multicol}
+\usepackage{courier}
+\usepackage{fancyhdr}
+
+\lstset{language=C++}
+\lstset{columns=fullflexible}
+\lstset{basicstyle=\scriptsize\ttfamily}
+\lstset{showspaces=false}
+
+\geometry{landscape}
+\setlength{\topmargin}{-0.25in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\columnsep}{1in}
+\setlength{\columnseprule}{0.2pt}
+\textwidth 9.5in
+
+\pagestyle{fancy}
+\lhead{Universidad de La Habana - UH}
+\chead{}
+\rhead{\thepage}
+\lfoot{}
+\cfoot{}
+\rfoot{}
+
+\newcommand{\includecpp}[2]{
+  \begin{multicols}{2}
+    [\subsection{#1}\ ]
+    \begin{lstlisting}[language=C++]
+        #2
+    \end{lstlisting}
+  \end{multicols}
+}
+
+\begin{document}
+
+% code hear
+
+\end{document}
