@@ -25,12 +25,9 @@ public:
         }
     }
 
-    int find(int n)
+    int find(int a)
     {
-        if (n == p[n])
-            return n;
-        p[n] = find(p[n]);
-        return p[n];
+        return a == p[a] ? a : p[a] = find(p[a]);
     }
 
     bool isSameSet(int i, int j) { return find(i) == find(j); }
