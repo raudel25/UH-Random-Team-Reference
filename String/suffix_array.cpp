@@ -25,6 +25,7 @@ public:
         temp_sa.assign(n, 0);
 
         construct_sa();
+        build_lcp();
     }
 
     int size() { return n; }
@@ -41,17 +42,24 @@ public:
         return ans.second - ans.first + 1;
     }
 
+    int get_lcp(int i) { return plcp[sa[i]]; }
+
+    int cant_substr() { return v_cant_substr; }
+
     string get_str(int i) { return s_value.substr(sa[i], n - sa[i] - 1); }
 
 private:
     string s_value;
     int n;
+    int v_cant_substr;
 
     vi ra;
     vi sa;
     vi c;
     vi temp_ra;
     vi temp_sa;
+    vi phi;
+    vi plcp;
 
     void counting_sort(int k)
     {
@@ -118,7 +126,7 @@ private:
             int m = (l + r) / 2;
 
             comp = s_value.substr(sa[m], min(n - sa[m], p_size));
-           
+
             if (comp >= p)
                 r = m;
             else
@@ -156,6 +164,37 @@ private:
 
         return {ans_l, ans_r};
     }
+
+    void build_lcp()
+    {
+        phi.assign(n, 0);
+        plcp.assign(n, 0);
+
+        phi[0] = -1;
+
+        for (int i = 1; i < n; i++)
+            phi[sa[i]] = sa[i - 1];
+
+        int l = 0;
+        int q = 0;
+        for (int i = 0; i < n; i++)
+        {
+            if (phi[i] == -1)
+            {
+                plcp[i] = 0;
+                continue;
+            }
+
+            while (s_value[i + l] == s_value[phi[i] + l])
+                l++;
+
+            plcp[i] = l;
+            q += l;
+            l = max(l - 1, (int)0);
+        }
+
+        v_cant_substr = n * (n - 1) / 2 - q;
+    }
 };
 // end;
 
@@ -165,17 +204,9 @@ void solve()
     cin >> s;
 
     SuffixArray suffix(s);
+    int n = s.size();
 
-    int q;
-    cin >> q;
-
-    for (int i = 0; i < q; i++)
-    {
-        string x;
-        cin >> x;
-
-        cout << suffix.cant_match(x) << "\n";
-    }
+    cout << suffix.cant_substr() << "\n";
 }
 
 int32_t main()
