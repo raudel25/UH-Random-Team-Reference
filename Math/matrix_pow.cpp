@@ -16,6 +16,7 @@ typedef vector<int> vi;
 typedef vector<ll> vll;
 typedef vector<pii> vii;
 
+// begin
 const int MAXN = 2;
 
 struct Matrix
@@ -59,6 +60,7 @@ Matrix operator^(Matrix &base, ll e)
     }
     return c;
 }
+// end
 int main()
 {
 
