@@ -6,65 +6,48 @@
 #define vi vector<int>
 
 using namespace std;
-
-// begin
-class SparseTable
-{
-
+class SparseTable {                              // OOP style
 private:
-    vector<vi> lookup;
-
-    vi arr;
-
-    int operation(int a, int b)
-    {
-        if (arr[a] <= arr[b])
-            return a;
-
-        return b;
-    }
-
-    int simple_node(int i) { return i; }
-
-    void build_sparse_table()
-    {
-        int n = arr.size();
-
-        for (int i = 0; i < n; i++)
-            lookup[i][0] = simple_node(i);
-
-        for (int j = 1; (1 << j) <= n; j++)
-        {
-            for (int i = 0; i <= n - (1 << j); i++)
-                lookup[i][j] = operation(lookup[i][j - 1],
-                                         lookup[i + (1 << (j - 1))][j - 1]);
-        }
-    }
-
+  vi A, P2, L2;
+  vector<vi> SpT;                                // the Sparse Table
 public:
-    SparseTable(vi &a)
-    {
-        int q = (int)log2(a.size());
+  SparseTable() {}                               // default constructor
 
-        arr.assign(a.size(), 0);
-        lookup.assign(a.size(), vi(q + 1));
-
-        for (int i = 0; i < a.size(); i++)
-            arr[i] = a[i];
-
-        build_sparse_table();
+  SparseTable(vi &initialA) {                    // pre-processing routine
+    A = initialA;
+    int n = (int)A.size();
+    int L2_n = (int)log2(n)+1;
+    P2.assign(L2_n, 0);
+    L2.assign(1<<L2_n, 0);
+    for (int i = 0; i <= L2_n; ++i) {
+      P2[i] = (1<<i);                            // to speed up 2^i
+      L2[(1<<i)] = i;                            // to speed up log_2(i)
     }
+    for (int i = 2; i < P2[L2_n]; ++i)
+      if (L2[i] == 0)
+        L2[i] = L2[i-1];                         // to fill in the blanks
 
-    int query(int l, int r)
-    {
-        int q = (int)log2(r - l + 1);
+    // the initialization phase
+    SpT = vector<vi>(L2[n]+1, vi(n));
+    for (int j = 0; j < n; ++j)
+      SpT[0][j] = j;                             // RMQ of sub array [j..j]
 
-        return operation(lookup[l][q], lookup[r - (1 << q) + 1][q]);
-    }
+    // the two nested loops below have overall time complexity = O(n log n)
+    for (int i = 1; P2[i] <= n; ++i)             // for all i s.t. 2^i <= n
+      for (int j = 0; j+P2[i]-1 < n; ++j) {      // for all valid j
+        int x = SpT[i-1][j];                     // [j..j+2^(i-1)-1]
+        int y = SpT[i-1][j+P2[i-1]];             // [j+2^(i-1)..j+2^i-1]
+        SpT[i][j] = A[x] <= A[y] ? x : y;
+      }
+  }
 
-    int get(int i) { return arr[i]; }
+  int RMQ(int i, int j) {
+    int k = L2[j-i+1];                           // 2^k <= (j-i+1)
+    int x = SpT[k][i];                           // covers [i..i+2^k-1]
+    int y = SpT[k][j-P2[k]+1];                   // covers [j-2^k+1..j]
+    return A[x] <= A[y] ? x : y;
+  }
 };
-// end
 
 void solve()
 {
