@@ -2,65 +2,75 @@
 
 #define MAX(a, b) (a > b) ? a : b
 #define MIN(a, b) (a < b) ? a : b
-#define int long long
 #define vi vector<int>
 
 using namespace std;
-class SparseTable {                              // OOP style
-private:
-  vi A, P2, L2;
-  vector<vi> SpT;                                // the Sparse Table
-public:
-  SparseTable() {}                               // default constructor
+const int MAXN = 2e5;
+const int MAXE = 31 - __builtin_clz(MAXN) + 1;
 
-  SparseTable(vi &initialA) {                    // pre-processing routine
-    A = initialA;
-    int n = (int)A.size();
-    int L2_n = (int)log2(n)+1;
-    P2.assign(L2_n, 0);
-    L2.assign(1<<L2_n, 0);
-    for (int i = 0; i <= L2_n; ++i) {
-      P2[i] = (1<<i);                            // to speed up 2^i
-      L2[(1<<i)] = i;                            // to speed up log_2(i)
+int p2[MAXN], l2[MAXN], n = 5;
+int spt[MAXE][MAXN];
+int A[] = {0, 1, -1, 3, 10, 5};
+
+void build_spt()
+{
+
+    int L2_n = (int)log2(n) + 1;
+    for (int i = 0; i <= L2_n; ++i)
+    {
+        p2[i] = (1 << i);
+        l2[(1 << i)] = i;
     }
-    for (int i = 2; i < P2[L2_n]; ++i)
-      if (L2[i] == 0)
-        L2[i] = L2[i-1];                         // to fill in the blanks
+    for (int i = 2; i < p2[L2_n]; ++i)
+        if (l2[i] == 0)
+            l2[i] = l2[i - 1];
 
-    // the initialization phase
-    SpT = vector<vi>(L2[n]+1, vi(n));
-    for (int j = 0; j < n; ++j)
-      SpT[0][j] = j;                             // RMQ of sub array [j..j]
+    for (int j = 1; j <= n; ++j)
+        spt[0][j] = j;
 
-    // the two nested loops below have overall time complexity = O(n log n)
-    for (int i = 1; P2[i] <= n; ++i)             // for all i s.t. 2^i <= n
-      for (int j = 0; j+P2[i]-1 < n; ++j) {      // for all valid j
-        int x = SpT[i-1][j];                     // [j..j+2^(i-1)-1]
-        int y = SpT[i-1][j+P2[i-1]];             // [j+2^(i-1)..j+2^i-1]
-        SpT[i][j] = A[x] <= A[y] ? x : y;
-      }
-  }
+    for (int i = 1; p2[i] <= n; ++i)
+        for (int j = 1; j + p2[i] - 1 <= n; ++j)
+        {
+            int x = spt[i - 1][j];
+            int y = spt[i - 1][j + p2[i - 1]];
+            spt[i][j] = A[x] <= A[y] ? x : y;
+        }
+}
 
-  int RMQ(int i, int j) {
-    int k = L2[j-i+1];                           // 2^k <= (j-i+1)
-    int x = SpT[k][i];                           // covers [i..i+2^k-1]
-    int y = SpT[k][j-P2[k]+1];                   // covers [j-2^k+1..j]
+int rmq(int i, int j)
+{
+    int k = l2[j - i + 1];
+    int x = spt[k][i];
+    int y = spt[k][j - p2[k] + 1];
     return A[x] <= A[y] ? x : y;
-  }
-};
+}
+int bf(int i, int j)
+{
+
+    int idx = -1;
+    int mn = INT_MAX;
+    for (; i <= j; i++)
+    {
+        if (mn > A[i])
+        {
+            mn = A[i];
+            idx = i;
+        }
+    }
+    return i;
+}
 
 void solve()
 {
-
-    vi a;
-    a.push_back(1);
-    a.push_back(-1);
-    a.push_back(3);
-    a.push_back(10);
-
-    auto s = SparseTable(a);
-
-    cout << s.query(1, 3) << "\n";
+    build_spt();
+    for (int i = 1; i <= 5; i++)
+        for (int j = i; j <= 5; j++)
+        {
+            int x = rmq(i, j);
+            int y = rmq(i, j);
+            assert(x == y);
+            cout << "Query " << i << " " << j << ": " << A[x] << '\n';
+        }
 }
 
 int32_t main()
