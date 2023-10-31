@@ -10,38 +10,50 @@
 using namespace std;
 
 // begin
-const int maxn = 10;
+const int MAXN = 2e5 + 5;
 
-vi adj[maxn];
-bool mk[maxn];
-int q[maxn], p[maxn], sz[maxn], mc[maxn];
+vi ady[MAXN];
 
-int centroid(int c)
+bitset<MAXN> is_centroid;
+
+int sz[MAXN], ct_par[MAXN];
+void centroid_dfs(int node, int parent)
 {
-    int b = 0, e = 0;
-    q[e++] = c, p[c] = -1, sz[c] = 1, mc[c] = 0;
-
-    while (b < e)
+    sz[node] = 1;
+    for (int &nxt : ady[node])
     {
-        int u = q[b++];
-        for (auto v : adj[u])
-            if (v != p[u] && !mk[v])
-                p[v] = u, sz[v] = 1, mc[v] = 0, q[e++] = v;
+        if (is_centroid[nxt] || nxt == parent)
+            continue;
+        centroid_dfs(nxt, node);
+        sz[node] += sz[nxt];
     }
-
-    for (int i = e - 1; ~i; --i)
-    {
-        int u = q[i];
-        int bc = max(e - sz[u], mc[u]);
-        if (2 * bc <= e)
-            return u;
-        sz[p[u]] += sz[u], mc[p[u]] = max(mc[p[u]], sz[u]);
-    }
-
-    assert(false);
-    return -1;
 }
-// end
+int get_centroid(int node, int parent, int tree_sz)
+{
+    for (int nxt : ady[node])
+    {
+        if (is_centroid[nxt] || nxt == parent)
+            continue;
+        if (sz[nxt] * 2 > tree_sz)
+            return get_centroid(nxt, node, tree_sz);
+    }
+    return node;
+}
+void centroid_decomp(int node, int parent = -1)
+{
+    centroid_dfs(node, -1);
+    int tree_sz = sz[node];
+    int centroid = get_centroid(node, -1, tree_sz);
+    is_centroid[centroid] = 1;
+    ct_par[centroid] = parent;
+
+    for (int &child : ady[centroid])
+    {
+        if (is_centroid[child])
+            continue;
+        centroid_decomp(child, centroid);
+    }
+}
 
 void solve()
 {
