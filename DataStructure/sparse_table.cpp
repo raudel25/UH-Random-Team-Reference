@@ -14,26 +14,26 @@ int A[] = {0, 1, -1, 3, 10, 5};
 class SparseTable
 {
 private:
-    vi a, p2, l2;
+    vi arr, p2, l2;
     vector<vi> spt;
 
 public:
     SparseTable(int n, int *A)
     {
-        a.assign(A + 1, A + n + 1);
+        arr.assign(A + 1, A + n + 1);
         build_spt();
     }
     SparseTable(vi A)
     {
-        a = A;
+        arr = A;
         build_spt();
     }
     void build_spt()
     {
-        int n = a.size();
+        int n = arr.size();
         int L2_n = (int)log2(n) + 1;
-        p2.assign(L2_n, 0);
-        l2.assign(1 << L2_n, 0);
+        p2.assign(L2_n + 1, 0);
+        l2.assign((1 << L2_n) + 1, 0);
 
         for (int i = 0; i <= L2_n; ++i)
         {
@@ -50,19 +50,21 @@ public:
             spt[0][j] = j;
 
         for (int i = 1; p2[i] <= n; ++i)
-            for (int j = 1; j + p2[i] - 1 < n; ++j)
+            for (int j = 0; j + p2[i] - 1 < n; ++j)
             {
                 int x = spt[i - 1][j];
                 int y = spt[i - 1][j + p2[i - 1]];
-                spt[i][j] = A[x] <= A[y] ? x : y;
+                spt[i][j] = arr[x] <= arr[y] ? x : y;
             }
     }
     int rmq(int i, int j)
     {
+        if (i > j)
+            swap(i, j);
         int k = l2[j - i + 1];
         int x = spt[k][i];
         int y = spt[k][j - p2[k] + 1];
-        return A[x] <= A[y] ? x : y;
+        return arr[x] <= arr[y] ? x : y;
     }
 };
 
@@ -84,12 +86,12 @@ int bf(int i, int j)
 
 void solve()
 {
-    SparseTable spt(n, A);
+    SparseTable *spt = new SparseTable(n, A);
     for (int i = 1; i <= 5; i++)
         for (int j = i; j <= 5; j++)
         {
-            int x = spt.rmq(i, j);
-            int y = spt.rmq(i, j);
+            int x = spt->rmq(i, j);
+            int y = spt->rmq(i, j);
             assert(x == y);
             cout << "Query " << i << " " << j << ": " << A[x] << '\n';
         }
