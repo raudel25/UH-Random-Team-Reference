@@ -74,7 +74,7 @@ int32_t main()
     }
     int max_matching = 0;
 
-    mt.assign(n + 1, -1);
+    mt.assign(m + 1, -1);
     int ans = 0;
     forl(v, 1, n)
     {
