@@ -152,11 +152,11 @@ struct mod_int
     }
 };
 
-// Notar que se usó este tipo de datos entero, que implementa todas las
-// operaciones básicos en el sistem residual módulo 10^9+7 para hacer mas
+// Notar que se uso este tipo de datos entero, que implementa todas las
+// operaciones basicos en el sistem residual modulo 10^9+7 para hacer mas
 // faciles las implementaciones si se quiere implementarlo, se puede dejar en
 // long long, y modificar las operaciones para mantener los resultados teneindo
-// en cuenta el módulo a usar.
+// en cuenta el modulo a usar.
 using T = mod_int<mod>;
 
 void HADAMARD_XOR(vector<T> &a, bool inverse = false)
@@ -239,7 +239,7 @@ void HADAMARD_OR(vector<T> &a, bool inverse = false)
     }
 }
 
-// Las demás operaciones a nivel de bit tienen una implementación semejante
+// Las demas operaciones a nivel de bit tienen una implementacion semejante
 template <typename T>
 vector<T> FWHT_XOR(vector<T> a, vector<T> b)
 {
@@ -270,6 +270,8 @@ vector<T> FWHT_XOR(vector<T> a, vector<T> b)
 
     return a;
 }
+
+// end
 
 int32_t main()
 {
@@ -322,5 +324,3 @@ int32_t main()
     }
     cout << "\n";
 }
-
-// end

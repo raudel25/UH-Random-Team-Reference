@@ -63,6 +63,8 @@ vector<ll> convolve(const vector<ll> &a, const vector<ll> &b)
     return {out.begin(), out.begin() + s};
 }
 
+// end
+
 int32_t main()
 {
     ios_base::sync_with_stdio(0);
@@ -110,5 +112,3 @@ int32_t main()
     }
     cout << "\n";
 }
-
-// end

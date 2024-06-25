@@ -78,891 +78,482 @@ int32_t main()
 
 \end{lstlisting}
 \end{multicols}
-\section{Graph}
-Prim
+\section{Math}
+Ntt
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
-int spanningTreePrim(int V, vector<vector<int>> adj[])
+using ll = long long;
+
+const ll mod = (119 << 23) + 1, root = 62; // 998244353
+
+ll qp(ll b, ll e)
 {
+    ll ans = 1;
+    for (; e; b = b * b % mod, e /= 2)
+        if (e & 1)
+            ans = ans * b % mod;
+    return ans;
+}
 
-    priority_queue<pair<int, int>> q;
+void ntt(vector<ll> &a, vector<ll> &rt, vector<ll> &rev, int n)
+{
+    for (int i = 0; i < n; i++)
+        if (i < rev[i])
+            swap(a[i], a[rev[i]]);
 
-    vector<bool> mask;
-    mask.assign(V, false);
-    mask[0] = true;
+    for (int k = 1; k < n; k *= 2)
+        for (int i = 0; i < n; i += 2 * k)
+            for (int j = 0; j < k; j++)
+            {
+                ll z = rt[j + k] * a[i + j + k] % mod, &ai = a[i + j];
+                a[i + j + k] = (z > ai ? ai - z + mod : ai - z);
+                ai += (ai + z >= mod ? z - mod : z);
+            }
+}
 
-    int cost = 0;
+vector<ll> convolve(const vector<ll> &a, const vector<ll> &b)
+{
+    if (a.empty() || b.empty())
+        return {};
 
-    for (int i = 0; i < adj[0].size(); i++)
+    int s = a.size() + b.size() - 1, B = 32 - __builtin_clz(s), n = 1 << B;
+
+    vector<ll> L(a), R(b), out(n), rt(n, 1), rev(n);
+    L.resize(n), R.resize(n);
+
+    for (int i = 0; i < n; i++)
+        rev[i] = (rev[i / 2] | (i & 1) << B) / 2;
+
+    ll curL = mod / 2, inv = qp(n, mod - 2);
+    for (int k = 2; k < n; k *= 2)
     {
-        q.push({-adj[0][i][1], adj[0][i][0]});
+        ll z[] = {1, qp(root, curL /= 2)};
+        for (int i = k; i < 2 * k; i++)
+            rt[i] = rt[i / 2] * z[i & 1] % mod;
     }
 
-    while (q.size() != 0)
+    ntt(L, rt, rev, n);
+    ntt(R, rt, rev, n);
+
+    for (int i = 0; i < n; i++)
+        out[-i & (n - 1)] = L[i] * R[i] % mod * inv % mod;
+
+    ntt(out, rt, rev, n);
+
+    return {out.begin(), out.begin() + s};
+}
+
+
+\end{lstlisting}
+\end{multicols}
+Matrix Pow
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+const int MAXN = 2;
+
+struct Matrix
+{
+    ll mat[MAXN][MAXN];
+};
+
+Matrix operator*(const Matrix &a, const Matrix &b)
+{
+    Matrix c;
+    for (int i = 0; i < MAXN; ++i)
+        for (int j = 0; j < MAXN; ++j)
+            c.mat[i][j] = 0;
+
+    for (int i = 0; i < MAXN; i++)
     {
-        auto aux = q.top();
-        q.pop();
-
-        int k = aux.second;
-        if (mask[k])
-            continue;
-
-        mask[k] = true;
-        cost += abs(aux.first);
-
-        for (int i = 0; i < adj[k].size(); i++)
+        for (int k = 0; k < MAXN; k++)
         {
-            if (!mask[adj[k][i][0]])
+            if (a.mat[i][k] == 0)
+                continue;
+            for (int j = 0; j < MAXN; j++)
             {
-                q.push({-adj[k][i][1], adj[k][i][0]});
+                c.mat[i][j] += a.mat[i][k] * b.mat[k][j];
             }
         }
     }
-
-    return cost;
+    return c;
+}
+Matrix operator^(Matrix &base, ll e)
+{
+    Matrix c;
+    for (int i = 0; i < MAXN; i++)
+        for (int j = 0; j < MAXN; j++)
+            c.mat[i][j] = (i == j);
+    while (e)
+    {
+        if (e & 1ll)
+            c = c * base;
+        base = base * base;
+        e >>= 1;
+    }
+    return c;
 }
 
 \end{lstlisting}
 \end{multicols}
-Dfs Bfs
+Fft
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
-void dfs_g(int n, int c, vi adj[], vector<bool> &visited, vi &cc)
+struct point
 {
-    visited[n] = true;
-    cc[n] = c;
+    double x, y;
+    point(double x = 0, double y = 0) : x(x), y(y) {}
+};
 
-    for (int i = 0; i < adj[n].size(); i++)
-    {
-        if (!visited[adj[n][i]])
-            dfs_g(adj[n][i], c, adj, visited, cc);
-    }
+point operator+(const point &a, const point &b)
+{
+    return {a.x + b.x, a.y + b.y};
 }
-
-void dfs_t(int n, int p, int d, vi adj[], vi &deep)
+point operator-(const point &a, const point &b)
 {
-    deep[n] = d;
-
-    for (int i = 0; i < adj[n].size(); i++)
-    {
-        if (p != adj[n][i])
-            dfs_t(adj[n][i], n, d + 1, adj, deep);
-    }
+    return {a.x - b.x, a.y - b.y};
 }
-
-vi bfs(int node, int n, vi adj[])
+point operator*(const point &a, const point &b)
 {
-    vi result(n);
-    vector<bool> visited;
-    visited.assign(n, false);
+    return {a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x};
+}
+point operator/(const point &a, double d) { return {a.x / d, a.y / d}; }
 
-    queue<int> q;
-    visited[node] = true;
-
-    q.push(node);
-
-    while (q.size() != 0)
+void fft(vector<point> &a, int sign = 1)
+{
+    int n = a.size(); // n should be a power of two
+    double theta = 8 * sign * atan(1.0) / n;
+    for (int i = 0, j = 1; j < n - 1; ++j)
     {
-        int w = q.front();
-        q.pop();
-
-        for (int i = 0; i < adj[w].size(); i++)
+        for (int k = n >> 1; k > (i ^= k); k >>= 1)
+            ;
+        if (j < i)
+            swap(a[i], a[j]);
+    }
+    for (int m, mh = 1; (m = mh << 1) <= n; mh = m)
+    {
+        int irev = 0;
+        for (int i = 0; i < n; i += m)
         {
-            if (!visited[adj[w][i]])
+            point w = point(cos(theta * irev), sin(theta * irev));
+            for (int k = n >> 2; k > (irev ^= k); k >>= 1)
+                ;
+            for (int j = i; j < mh + i; ++j)
             {
-                q.push(adj[w][i]);
-                result[adj[w][i]] = result[w] + 1;
-                visited[adj[w][i]] = true;
+                int k = j + mh;
+                point x = a[j] - a[k];
+                a[j] = a[j] + a[k];
+                a[k] = w * x;
             }
         }
     }
-
-    return result;
+    if (sign == -1)
+        for (auto &p : a)
+            p = p / n;
 }
+
+vector<point> convolve(vector<point> &a, vector<point> &b)
+{
+    int n = a.size();
+    int m = b.size();
+    int k = n + m;
+    while (k != (k & -k))
+        k += (k & -k);
+    while (a.size() < k)
+        a.push_back(point(0, 0));
+    while (b.size() < k)
+        b.push_back(point(0, 0));
+
+    fft(a, 1);
+    fft(b, 1);
+
+    vector<point> c(k);
+    for (int i = 0; i < k; i++)
+        c[i] = a[i] * b[i];
+
+    fft(c, -1);
+
+    return c;
+}
+
 
 \end{lstlisting}
 \end{multicols}
-Max Flow
+Fwht
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
-template <typename flow_type>
-struct dinic
+
+using ll = long long;
+
+const int mod = 1e9 + 7;
+
+template <const int _mod_>
+struct mod_int
 {
-    struct edge
+    static const int mod = _mod_;
+    int val;
+
+    mod_int(long long v = 0)
     {
-        size_t src, dst, rev;
-        flow_type flow, cap;
-    };
-
-    int n;
-    vector<vector<edge>> adj;
-
-    dinic(int n) : n(n), adj(n), level(n), q(n), it(n) {}
-
-    void add_edge(size_t src, size_t dst, flow_type cap, flow_type rcap = 0)
-    {
-        adj[src].push_back({src, dst, adj[dst].size(), 0, cap});
-        if (src == dst)
-            adj[src].back().rev++;
-        adj[dst].push_back({dst, src, adj[src].size() - 1, 0, rcap});
+        if (v < 0)
+            v = v % mod + mod;
+        if (v >= mod)
+            v %= mod;
+        val = v;
     }
 
-    vector<int> level, q, it;
-
-    bool bfs(int source, int sink)
+    static int mod_inv(int a, int m = mod)
     {
-        fill(level.begin(), level.end(), -1);
-        for (int qf = level[q[0] = sink] = 0, qb = 1; qf < qb; ++qf)
+        int g = m, r = a, x = 0, y = 1;
+        while (r != 0)
         {
-            sink = q[qf];
-            for (edge &e : adj[sink])
+            int q = g / r;
+            g %= r;
+            swap(g, r);
+            x -= q * y;
+            swap(x, y);
+        }
+        return x < 0 ? x + m : x;
+    }
+
+    explicit operator int() const { return val; }
+
+    mod_int &operator+=(const mod_int &other)
+    {
+        val += other.val;
+        if (val >= mod)
+            val -= mod;
+        return *this;
+    }
+
+    mod_int &operator-=(const mod_int &other)
+    {
+        val -= other.val;
+        if (val < 0)
+            val += mod;
+        return *this;
+    }
+
+    static unsigned fast_mod(uint64_t x, unsigned m = mod)
+    {
+#if !defined(_WIN32) || defined(_WIN64)
+        return x % m;
+#endif
+        // Optimized mod for Codeforces 32-bit machines.
+        // x must be less than 2^32 * m for this to work, so that x / m fits in
+        // a 32-bit integer.
+        unsigned x_high = x >> 32, x_low = (unsigned)x;
+        unsigned quot, rem;
+        asm("divl %4\n"
+            : "=a"(quot), "=d"(rem)
+            : "d"(x_high), "a"(x_low), "r"(m));
+        return rem;
+    }
+
+    mod_int &operator*=(const mod_int &other)
+    {
+        val = fast_mod((uint64_t)val * other.val);
+        return *this;
+    }
+
+    mod_int &operator/=(const mod_int &other) { return *this *= other.inv(); }
+
+    friend mod_int operator+(const mod_int &a, const mod_int &b)
+    {
+        return mod_int(a) += b;
+    }
+    friend mod_int operator-(const mod_int &a, const mod_int &b)
+    {
+        return mod_int(a) -= b;
+    }
+    friend mod_int operator*(const mod_int &a, const mod_int &b)
+    {
+        return mod_int(a) *= b;
+    }
+    friend mod_int operator/(const mod_int &a, const mod_int &b)
+    {
+        return mod_int(a) /= b;
+    }
+
+    mod_int &operator++()
+    {
+        val = val == mod - 1 ? 0 : val + 1;
+        return *this;
+    }
+
+    mod_int &operator--()
+    {
+        val = val == 0 ? mod - 1 : val - 1;
+        return *this;
+    }
+
+    mod_int operator++(int)
+    {
+        mod_int a = *this;
+        ++*this;
+        return a;
+    }
+    mod_int operator--(int)
+    {
+        mod_int a = *this;
+        --*this;
+        return a;
+    }
+    mod_int operator-() const { return val == 0 ? 0 : mod - val; }
+    mod_int inv() const { return mod_inv(val); }
+
+    bool operator==(const mod_int &other) const { return val == other.val; }
+    bool operator!=(const mod_int &other) const { return val != other.val; }
+    bool operator<(const mod_int &other) const { return val < other.val; }
+    bool operator>(const mod_int &other) const { return val > other.val; }
+
+    template <typename T>
+    bool operator<(const T &other) const
+    {
+        return val < other;
+    }
+
+    template <typename T>
+    bool operator>(const T &other) const
+    {
+        return val > other;
+    }
+
+    friend string to_string(const mod_int &m) { return to_string(m.val); }
+    friend mod_int abs(const mod_int &m) { return mod_int(m.val); }
+
+    friend ostream &operator<<(ostream &stream, const mod_int &m)
+    {
+        return stream << m.val;
+    }
+    friend istream &operator>>(istream &stream, mod_int &m)
+    {
+        return stream >> m.val;
+    }
+};
+
+// Notar que se uso este tipo de datos entero, que implementa todas las
+// operaciones basicos en el sistem residual modulo 10^9+7 para hacer mas
+// faciles las implementaciones si se quiere implementarlo, se puede dejar en
+// long long, y modificar las operaciones para mantener los resultados teneindo
+// en cuenta el modulo a usar.
+using T = mod_int<mod>;
+
+void HADAMARD_XOR(vector<T> &a, bool inverse = false)
+{
+    int n = a.size();
+    for (int k = 1; k < n; k <<= 1)
+    {
+        for (int i = 0; i < n; i += 2 * k)
+        {
+            for (int j = 0; j < k; j++)
             {
-                edge &r = adj[e.dst][e.rev];
-                if (r.flow < r.cap && level[e.dst] == -1)
-                    level[q[qb++] = e.dst] = 1 + level[sink];
+                T x = a[i + j];
+                T y = a[i + j + k];
+                a[i + j] = x + y;
+                a[i + j + k] = x - y;
             }
         }
-        return level[source] != -1;
     }
 
-    flow_type augment(int source, int sink, flow_type flow)
+    if (inverse)
     {
-        if (source == sink)
-            return flow;
-        for (; it[source] != adj[source].size(); ++it[source])
+        T q = 1 / static_cast<T>(n);
+
+        for (int i = 0; i < n; i++)
         {
-            edge &e = adj[source][it[source]];
-            if (e.flow < e.cap && level[e.dst] + 1 == level[source])
+            a[i] *= q;
+        }
+    }
+}
+
+void HADAMARD_AND(vector<T> &a, bool inverse = false)
+{
+    int n = a.size();
+    for (int k = 1; k < n; k <<= 1)
+    {
+        for (int i = 0; i < n; i += 2 * k)
+        {
+            for (int j = 0; j < k; j++)
             {
-                flow_type delta = augment(e.dst, sink, min(flow, e.cap - e.flow));
-                if (delta > 0)
+                T x = a[i + j];
+                T y = a[i + j + k];
+                if (inverse)
                 {
-                    e.flow += delta;
-                    adj[e.dst][e.rev].flow -= delta;
-                    return delta;
+                    a[i + j] = -x + y;
+                    a[i + j + k] = x;
+                }
+                else
+                {
+                    a[i + j] = y;
+                    a[i + j + k] = x + y;
                 }
             }
         }
-        return 0;
-    }
-
-    flow_type max_flow(int source, int sink)
-    {
-        for (int u = 0; u < n; ++u)
-            for (edge &e : adj[u])
-                e.flow = 0;
-        flow_type flow = 0;
-        flow_type oo = numeric_limits<flow_type>::max();
-
-        while (bfs(source, sink))
-        {
-            fill(it.begin(), it.end(), 0);
-            for (flow_type f; (f = augment(source, sink, oo)) > 0;)
-                flow += f;
-
-        } // level[u] = -1 => source side of min cut
-        return flow;
-    }
-};
-
-\end{lstlisting}
-\end{multicols}
-Articulation Point
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-vector<bool> visited;
-vi t;
-vi low;
-vector<bool> art;
-
-void dfs_art(vi adj[], int n, int p, int q)
-{
-    t[n] = q;
-    low[n] = q++;
-    visited[n] = true;
-
-    int j = 0;
-
-    for (int i = 0; i < adj[n].size(); i++)
-    {
-        if (!visited[adj[n][i]])
-        {
-            dfs_art(adj, adj[n][i], n, q);
-            low[n] = min(low[adj[n][i]], low[n]);
-            j++;
-
-            if (low[adj[n][i]] >= t[n] && p != -1)
-            {
-                art[n] = true;
-            }
-        }
-        else if (adj[n][i] != p)
-        {
-            low[n] = min(t[adj[n][i]], low[n]);
-        }
-    }
-
-    if (p == -1)
-    {
-        art[n] = j >= 2;
     }
 }
 
-void articulationPoints(int V, vi adj[])
+void HADAMARD_OR(vector<T> &a, bool inverse = false)
 {
-    visited.assign(V, false);
-    t.assign(V, -1);
-    low.assign(V, -1);
-    art.assign(V, false);
-
-    for (int i = 0; i < V; i++)
+    int n = a.size();
+    for (int k = 1; k < n; k <<= 1)
     {
-        if (!visited[i])
+        for (int i = 0; i < n; i += 2 * k)
         {
-            dfs_art(adj, i, -1, 1);
-        }
-    }
-}
-
-
-\end{lstlisting}
-\end{multicols}
-Dijsktra
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-int infinite = (int)1e9;
-
-// O(V^2)
-vector<int> dijkstra1(int V, vector<vector<int>> adj[], int S)
-{
-    vector<int> d;
-
-    d.assign(V, infinite);
-    d[S] = 0;
-
-    vector<bool> mask;
-
-    mask.assign(V, false);
-
-    for (int i = 0; i < V; i++)
-    {
-        int m = infinite;
-        int act = -1;
-
-        for (int j = 0; j < V; j++)
-        {
-            if (mask[j])
-                continue;
-
-            if (m > d[j])
+            for (int j = 0; j < k; j++)
             {
-                m = d[j];
-                act = j;
-            }
-        }
-
-        for (int j = 0; j < adj[act].size(); j++)
-        {
-            if (d[act] + adj[act][j][1] < d[adj[act][j][0]])
-            {
-                d[adj[act][j][0]] = d[act] + adj[act][j][1];
-            }
-        }
-
-        mask[act] = true;
-    }
-
-    return d;
-}
-
-// O((V+E)log(E))
-vi dijkstra2(int V, vii adj[], int S)
-{
-    vector<int> d;
-
-    d.assign(V, infinite);
-    d[S] = 0;
-
-    priority_queue<pair<int, int>> q;
-    q.push({d[S], S});
-
-    while (!q.empty())
-    {
-        int act = q.top().second;
-        int m = abs(q.top().first);
-        q.pop();
-
-        if (m > d[act])
-            continue;
-
-        for (int j = 0; j < adj[act].size(); j++)
-        {
-            if (d[act] + adj[act][j].second < d[adj[act][j].first])
-            {
-                d[adj[act][j].first] = d[act] + adj[act][j].second;
-                q.push({-d[adj[act][j].first], adj[act][j].first});
-            }
-        }
-    }
-
-    return d;
-}
-
-\end{lstlisting}
-\end{multicols}
-Bellman Ford
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-int infinite = (int)1e9;
-
-vector<int> bellman_ford(int V, vector<vector<int>> &edges, int S)
-{
-    vector<int> d;
-    d.assign(V, infinite);
-    d[S] = 0;
-
-    for (int i = 0; i < V - 1; i++)
-    {
-        for (int j = 0; j < edges.size(); j++)
-        {
-            if (d[edges[j][0]] + edges[j][2] < d[edges[j][1]])
-            {
-                d[edges[j][1]] = d[edges[j][0]] + edges[j][2];
-            }
-        }
-    }
-
-    for (int j = 0; j < edges.size(); j++)
-    {
-        if (d[edges[j][0]] + edges[j][2] < d[edges[j][1]])
-        {
-            vector<int> resp(1);
-            resp[0] = -1;
-
-            return resp;
-        }
-    }
-
-    return d;
-}
-
-\end{lstlisting}
-\end{multicols}
-Centroid Descomposition
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-const int maxn = 10;
-
-vi adj[maxn];
-bool mk[maxn];
-int q[maxn], p[maxn], sz[maxn], mc[maxn];
-
-int centroid(int c)
-{
-    int b = 0, e = 0;
-    q[e++] = c, p[c] = -1, sz[c] = 1, mc[c] = 0;
-
-    while (b < e)
-    {
-        int u = q[b++];
-        for (auto v : adj[u])
-            if (v != p[u] && !mk[v])
-                p[v] = u, sz[v] = 1, mc[v] = 0, q[e++] = v;
-    }
-
-    for (int i = e - 1; ~i; --i)
-    {
-        int u = q[i];
-        int bc = max(e - sz[u], mc[u]);
-        if (2 * bc <= e)
-            return u;
-        sz[p[u]] += sz[u], mc[p[u]] = max(mc[p[u]], sz[u]);
-    }
-
-    assert(false);
-    return -1;
-}
-
-\end{lstlisting}
-\end{multicols}
-Floyd Warshall
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-int infinite = (int)1e8;
-
-void shortest_distance(vector<vector<int>> &matrix)
-{
-    for (int k = 0; k < matrix.size(); k++)
-    {
-        for (int i = 0; i < matrix.size(); i++)
-        {
-            for (int j = 0; j < matrix[0].size(); j++)
-            {
-                matrix[i][j] = min(matrix[i][j], matrix[i][k] + matrix[k][j]);
+                T x = a[i + j];
+                T y = a[i + j + k];
+                if (inverse)
+                {
+                    a[i + j] = y;
+                    a[i + j + k] = x - y;
+                }
+                else
+                {
+                    a[i + j] = x + y;
+                    a[i + j + k] = x;
+                }
             }
         }
     }
 }
 
-void find_path_k(vector<vector<bool>> &matrix, int k)
+// Las demas operaciones a nivel de bit tienen una implementacion semejante
+template <typename T>
+vector<T> FWHT_XOR(vector<T> a, vector<T> b)
 {
-    for (int x = 0; x < k; x++)
+    bool eq = (a == b);
+    int n = 1;
+
+    while (n < (int)max(a.size(), b.size()))
     {
-        for (int i = 0; i < matrix.size(); i++)
-        {
-            for (int j = 0; j < matrix[0].size(); j++)
-            {
-                matrix[i][j] = matrix[i][j] || (matrix[i][x] && matrix[x][j]);
-            }
-        }
-    }
-}
-
-\end{lstlisting}
-\end{multicols}
-Lca
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-class SparseTable
-{
-
-private:
-    vector<vi> lookup;
-
-    vi arr;
-
-    int rmq(int a, int b)
-    {
-        if (arr[a] <= arr[b])
-            return a;
-
-        return b;
+        n <<= 1;
     }
 
-    int operation(int a, int b)
-    {
-        return rmq(a, b);
-    }
+    a.resize(n);
+    b.resize(n);
 
-    void build_sparse_table()
-    {
-        int n = arr.size();
+    HADAMARD_XOR(a);
 
-        for (int i = 0; i < n; i++)
-            lookup[i][0] = i;
-
-        for (int j = 1; (1 << j) <= n; j++)
-        {
-            for (int i = 0; i <= n - (1 << j); i++)
-                lookup[i][j] = operation(lookup[i][j - 1], lookup[i + (1 << (j - 1))][j - 1]);
-        }
-    }
-
-public:
-    SparseTable(vi &a)
-    {
-        int q = (int)log2(a.size());
-
-        arr.assign(a.size(), 0);
-        lookup.assign(a.size(), vi(q + 1));
-
-        for (int i = 0; i < a.size(); i++)
-            arr[i] = a[i];
-
-        build_sparse_table();
-    }
-
-    int query(int l, int r)
-    {
-        int q = (int)log2(r - l + 1);
-
-        return operation(lookup[l][q],
-                         lookup[r - (1 << q) + 1][q]);
-    }
-
-    int get(int i) { return arr[i]; }
-};
-
-void dfs(int n, int p, int d, vi adj[], vi &deep, vi &arr)
-{
-    deep[n] = d;
-    arr.push_back(n);
-
-    for (int i = 0; i < adj[n].size(); i++)
-    {
-        if (p != adj[n][i])
-        {
-            dfs(adj[n][i], n, d + 1, adj, deep, arr);
-            arr.push_back(n);
-        }
-    }
-}
-
-vi lca(int root, int n, vi adj[], vii &querys)
-{
-    vi deep(n);
-    vi first(n);
-    vi last(n);
-    vi arr;
-    vi resp(querys.size());
-
-    dfs(root, -1, 0, adj, deep, arr);
-
-    for (int i = 0; i < arr.size(); i++)
-        last[arr[i]] = i;
-
-    for (int i = arr.size() - 1; i >= 0; i--)
-        first[arr[i]] = i;
-
-    vi arr_deep(arr.size());
-
-    for (int i = 0; i < arr_deep.size(); i++)
-        arr_deep[i] = deep[arr[i]];
-
-    auto s = SparseTable(arr_deep);
-
-    for (int i = 0; i < querys.size(); i++)
-    {
-        int l = first[querys[i].first];
-        int r = last[querys[i].second];
-
-        if (l > r)
-        {
-            r = last[querys[i].first];
-            l = first[querys[i].second];
-        }
-
-        int q = s.query(l, r);
-        resp[i] = arr[q];
-    }
-
-    return resp;
-}
-
-\end{lstlisting}
-\end{multicols}
-Topological Sort
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-vector<int> topoSort(int V, vector<int> adj[])
-{
-    vector<int> in(V);
-    vector<int> resp;
-
-    for (int i = 0; i < V; i++)
-    {
-        for (int j = 0; j < adj[i].size(); j++)
-        {
-            in[adj[i][j]]++;
-        }
-    }
-
-    queue<int> q;
-
-    for (int i = 0; i < V; i++)
-    {
-        if (in[i] == 0)
-            q.push(i);
-    }
-
-    while (q.size() != 0)
-    {
-        int n = q.front();
-        q.pop();
-
-        for (int i = 0; i < adj[n].size(); i++)
-        {
-            in[adj[n][i]]--;
-
-            if (in[adj[n][i]] == 0)
-                q.push(adj[n][i]);
-        }
-
-        resp.push_back(n);
-    }
-
-    return resp;
-}
-
-\end{lstlisting}
-\end{multicols}
-Kruskal
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-class ufds
-{
-private:
-    vector<int> p, rank, sizeSet;
-    int disjoinSet;
-
-public:
-    ufds(int n)
-    {
-        p.assign(n, 0);
-        rank.assign(n, 0);
-        sizeSet.assign(n, 1);
-        disjoinSet = n;
-        for (int i = 0; i < n; i++)
-        {
-            p[i] = i;
-        }
-    }
-
-    int find(int n)
-    {
-        if (n == p[n])
-            return n;
-        p[n] = find(p[n]);
-        return p[n];
-    }
-
-    bool isSameSet(int i, int j) { return find(i) == find(j); }
-
-    void unionSet(int i, int j)
-    {
-        if (!isSameSet(i, j))
-        {
-            disjoinSet--;
-            int x = find(i);
-            int y = find(j);
-            if (rank[x] > rank[y])
-            {
-                p[y] = x;
-                sizeSet[x] += sizeSet[y];
-            }
-            else
-            {
-                p[x] = y;
-                sizeSet[y] += sizeSet[x];
-                if (rank[x] == rank[y])
-                    rank[y]++;
-            }
-        }
-    }
-
-    int numDisjoinset() { return disjoinSet; }
-
-    int sizeofSet(int i) { return sizeSet[find(i)]; }
-};
-
-// Function to find sum of weights of edges of the Minimum Spanning Tree.
-int spanningTreeKruskal(int V, vector<vector<int>> adj[])
-{
-    ufds dsu(V);
-
-    vector<pair<int, pair<int, int>>> a;
-
-    for (int i = 0; i < V; i++)
-    {
-        for (int j = 0; j < adj[i].size(); j++)
-        {
-            a.push_back({adj[i][j][1], {i, adj[i][j][0]}});
-        }
-    }
-
-    sort(a.begin(), a.end());
-
-    int cost = 0;
-
-    for (int i = 0; i < a.size(); i++)
-    {
-        if (!dsu.isSameSet(a[i].second.first, a[i].second.second))
-        {
-            cost += a[i].first;
-
-            dsu.unionSet(a[i].second.first, a[i].second.second);
-        }
-    }
-
-    return cost;
-}
-
-\end{lstlisting}
-\end{multicols}
-Bridge Edges
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-vector<bool> visited;
-vector<int> t;
-vector<int> low;
-set<pair<int, int>> bridges;
-
-void dfs_bridges(vector<int> adj[], int n, int p, int q)
-{
-    t[n] = q;
-    low[n] = q++;
-    visited[n] = true;
-
-    int j = 0;
-
-    for (int i = 0; i < adj[n].size(); i++)
-    {
-        if (!visited[adj[n][i]])
-        {
-            dfs_bridges(adj, adj[n][i], n, q);
-            low[n] = min(low[adj[n][i]], low[n]);
-            j++;
-        }
-        else if (adj[n][i] != p)
-        {
-            low[n] = min(t[adj[n][i]], low[n]);
-        }
-    }
-
-    if (t[n] == low[n] && p != -1)
-    {
-        bridges.insert({min(n, p), max(n, p)});
-    }
-}
-
-set<pair<int, int>> bridge_edges(int V, vector<int> adj[])
-{
-    visited.assign(V, false);
-    t.assign(V, -1);
-    low.assign(V, -1);
-    bridges = set<pair<int, int>>();
-
-    for (int i = 0; i < V; i++)
-    {
-        if (!visited[i])
-        {
-            dfs_bridges(adj, i, -1, 1);
-        }
-    }
-
-    return bridges;
-}
-
-\end{lstlisting}
-\end{multicols}
-Scc Tarjans
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-stack<int> q;
-vector<bool> mask;
-vector<int> cc_list;
-
-void g_transp(int V, vector<int> adj[], vector<int> new_adj[])
-{
-    for (int i = 0; i < V; i++)
-    {
-        for (int j = 0; j < adj[i].size(); j++)
-        {
-            new_adj[adj[i][j]].push_back(i);
-        }
-    }
-}
-
-void dfs_visit(int n, vector<int> adj[], int cc)
-{
-    mask[n] = true;
-
-    for (int i = 0; i < adj[n].size(); i++)
-    {
-        if (!mask[adj[n][i]])
-            dfs_visit(adj[n][i], adj, cc);
-    }
-
-    if (cc == -1)
-        q.push(n);
+    if (eq)
+        b = a;
     else
+        HADAMARD_XOR(b);
+
+    for (int i = 0; i < n; i++)
     {
-        cc_list[n] = cc;
+        a[i] *= b[i];
     }
+
+    HADAMARD_XOR(a, true);
+
+    return a;
 }
 
-void tarjans(int V, vector<int> adj[])
-{
-    vector<int> new_adj[V];
-    g_transp(V, adj, new_adj);
-
-    mask.assign(V, false);
-    cc_list.assign(V, -1);
-
-    for (int i = 0; i < V; i++)
-    {
-        if (mask[i])
-            continue;
-
-        dfs_visit(i, adj, -1);
-    }
-
-    for (int i = 0; i < V; i++)
-        mask[i] = false;
-
-    int ind = 0;
-
-    while (q.size() != 0)
-    {
-        int act = q.top();
-
-        q.pop();
-
-        if (!mask[act])
-        {
-            dfs_visit(act, new_adj, ind);
-            ind++;
-        }
-    }
-}
 
 \end{lstlisting}
 \end{multicols}
 \section{Geometry}
-Polygon
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-
-struct polygon {
-    vector<point> P;
-    polygon(const vector<point> &_P) : P(_P) {}
-
-    db perimeter() {
-        db ans = 0.0;
-        for (int i = 0; i < (int)P.size()-1; ++i)
-            ans += P[i].dist(P[i+1]);
-        return ans;
-    }
-
-    db area() {
-        db ans = 0.0;
-        for (int i = 0; i < (int)P.size()-1; ++i)
-            ans += (P[i].x*P[i+1].y - P[i+1].x*P[i].y);
-        return fabs(ans) / 2.0;
-    }
-
-    bool isConvex(const vector<point> &P) {
-        int n = (int)P.size();
-        if (n <= 3) return false;
-        bool firstTurn = vec().ccw(P[0], P[1], P[2]);
-        for (int i = 1; i < n-1; ++i)
-            if (vec().ccw(P[i], P[i+1], P[(i+2) == n ? 1 : i+2]) != firstTurn)
-                return false;
-        return true; 
-    }
-
-    int insidePolygon(point pt) {
-        int n = (int)P.size();
-        if (n <= 3) return -1;
-        bool on_polygon = false;
-        for (int i = 0; i < n-1; ++i)
-            if (fabs(pt.dist(P[i]) + pt.dist(P[i+1]) - P[i].dist(P[i+1])) < EPS)
-                on_polygon = true;
-        if (on_polygon) return 0;
-        double sum = 0.0;
-        for (int i = 0; i < n-1; ++i) {
-        if (vec().ccw(pt, P[i], P[i+1]))
-            sum += vec().angle(P[i], pt, P[i+1]);
-        else
-            sum -= vec().angle(P[i], pt, P[i+1]);
-        }
-        return fabs(sum) > M_PI ? 1 : -1;
-    }
-};
-
-
-\end{lstlisting}
-\end{multicols}
 Basics
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
@@ -1119,53 +710,57 @@ struct circle {
 
 \end{lstlisting}
 \end{multicols}
-\section{Math}
-Matrix Pow
+Polygon
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
-const int MAXN = 2;
 
-struct Matrix
-{
-    ll mat[MAXN][MAXN];
+struct polygon {
+    vector<point> P;
+    polygon(const vector<point> &_P) : P(_P) {}
+
+    db perimeter() {
+        db ans = 0.0;
+        for (int i = 0; i < (int)P.size()-1; ++i)
+            ans += P[i].dist(P[i+1]);
+        return ans;
+    }
+
+    db area() {
+        db ans = 0.0;
+        for (int i = 0; i < (int)P.size()-1; ++i)
+            ans += (P[i].x*P[i+1].y - P[i+1].x*P[i].y);
+        return fabs(ans) / 2.0;
+    }
+
+    bool isConvex(const vector<point> &P) {
+        int n = (int)P.size();
+        if (n <= 3) return false;
+        bool firstTurn = vec().ccw(P[0], P[1], P[2]);
+        for (int i = 1; i < n-1; ++i)
+            if (vec().ccw(P[i], P[i+1], P[(i+2) == n ? 1 : i+2]) != firstTurn)
+                return false;
+        return true; 
+    }
+
+    int insidePolygon(point pt) {
+        int n = (int)P.size();
+        if (n <= 3) return -1;
+        bool on_polygon = false;
+        for (int i = 0; i < n-1; ++i)
+            if (fabs(pt.dist(P[i]) + pt.dist(P[i+1]) - P[i].dist(P[i+1])) < EPS)
+                on_polygon = true;
+        if (on_polygon) return 0;
+        double sum = 0.0;
+        for (int i = 0; i < n-1; ++i) {
+        if (vec().ccw(pt, P[i], P[i+1]))
+            sum += vec().angle(P[i], pt, P[i+1]);
+        else
+            sum -= vec().angle(P[i], pt, P[i+1]);
+        }
+        return fabs(sum) > M_PI ? 1 : -1;
+    }
 };
 
-Matrix operator*(const Matrix &a, const Matrix &b)
-{
-    Matrix c;
-    for (int i = 0; i < MAXN; ++i)
-        for (int j = 0; j < MAXN; ++j)
-            c.mat[i][j] = 0;
-
-    for (int i = 0; i < MAXN; i++)
-    {
-        for (int k = 0; k < MAXN; k++)
-        {
-            if (a.mat[i][k] == 0)
-                continue;
-            for (int j = 0; j < MAXN; j++)
-            {
-                c.mat[i][j] += a.mat[i][k] * b.mat[k][j];
-            }
-        }
-    }
-    return c;
-}
-Matrix operator^(Matrix &base, ll e)
-{
-    Matrix c;
-    for (int i = 0; i < MAXN; i++)
-        for (int j = 0; j < MAXN; j++)
-            c.mat[i][j] = (i == j);
-    while (e)
-    {
-        if (e & 1ll)
-            c = c * base;
-        base = base * base;
-        e >>= 1;
-    }
-    return c;
-}
 
 \end{lstlisting}
 \end{multicols}
@@ -1257,98 +852,29 @@ public:
 
 \end{lstlisting}
 \end{multicols}
-Sparse Table
+Disjoint Set Union
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
-class SparseTable
-{
-
-private:
-    vector<vi> lookup;
-
-    vi arr;
-
-    int operation(int a, int b)
-    {
-        if (arr[a] <= arr[b])
-            return a;
-
-        return b;
+ 
+struct dsu {
+    vi p;
+    void init(int n) {
+        p = vi(n, -1);
     }
-
-    int simple_node(int i) { return i; }
-
-    void build_sparse_table()
-    {
-        int n = arr.size();
-
-        for (int i = 0; i < n; i++)
-            lookup[i][0] = simple_node(i);
-
-        for (int j = 1; (1 << j) <= n; j++)
-        {
-            for (int i = 0; i <= n - (1 << j); i++)
-                lookup[i][j] = operation(lookup[i][j - 1],
-                                         lookup[i + (1 << (j - 1))][j - 1]);
+    int get(int x) {
+        if (p[x] < 0)
+            return x;
+        return p[x] = get(p[x]);
+    }
+    void unite(int a, int b) {
+        a = get(a);
+        b = get(b);
+        if (a != b) {
+            if (p[a] > p[b])
+                swap(a, b);
+            p[a] += p[b];
+            p[b] = a;
         }
-    }
-
-public:
-    SparseTable(vi &a)
-    {
-        int q = (int)log2(a.size());
-
-        arr.assign(a.size(), 0);
-        lookup.assign(a.size(), vi(q + 1));
-
-        for (int i = 0; i < a.size(); i++)
-            arr[i] = a[i];
-
-        build_sparse_table();
-    }
-
-    int query(int l, int r)
-    {
-        int q = (int)log2(r - l + 1);
-
-        return operation(lookup[l][q], lookup[r - (1 << q) + 1][q]);
-    }
-
-    int get(int i) { return arr[i]; }
-};
-
-\end{lstlisting}
-\end{multicols}
-Sqrt Decomposition
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-
-struct sqd {
-    int n;
-    int b;
-    vi a;
-    vi bsum;
-    sqd(vi &a) {
-        n = a.size();
-        b = sqrt(n);
-        this->a = a;
-        bsum.assign(b + 1, 0);
-        for (int i = 0; i < n; i++)
-            bsum[i / b] += a[i];
-    }
-    void update(int i, int v) {
-        bsum[i / b] += v - a[i];
-        a[i] = v;
-    }
-    int query(int l, int r) {
-        int sum = 0;
-        for (int i = l; i <= r; i++)
-            if (i % b == 0 && i + b - 1 <= r) {
-                sum += bsum[i / b];
-                i += b - 1;
-            } else
-                sum += a[i];
-        return sum;
     }
 };
 
@@ -1385,49 +911,181 @@ int main()
 
 \end{lstlisting}
 \end{multicols}
-Abi
+Segment Tree Lazy
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
-class Abi
+class SegmentTreeLazy
 {
-
 private:
-    vi p;
-    int _size;
+    vi values;
+    vector<bool> lazy;
+    vi l_values;
+    vi p_values;
+    int n;
 
-    int ls_one(int i) { return i & (-i); }
+    int left(int p) { return p << 1; };
 
-public:
-    Abi(int n)
+    int right(int p) { return (p << 1) + 1; }
+
+    int simple_node(int index) { return values[index]; }
+
+    int prop(int x, int y) { return x + y; }
+
+    int prop_lazy(int x, int y) { return x + y; }
+
+    int prop_lazy_up(int x, int y, int s) { return x + y * s; }
+
+    void update_lazy(int p, int l, int r)
     {
-        _size = n;
-        p.assign(n + 1, 0);
-    }
-
-    int rsq(int k)
-    {
-        int sum = 0;
-
-        for (int i = k; i > 0; i -= ls_one(i))
+        if (l == r)
         {
-            sum += p[i];
+            values[l] = prop_lazy(values[l], l_values[p]);
         }
 
-        return sum;
+        p_values[p] = prop_lazy_up(p_values[p], l_values[p], r - l + 1);
     }
 
-    int sum(int a, int b) { return rsq(b) - rsq(a - 1); }
-
-    void adjust_sum(int k, int v)
+    void propagate_lazy(int p, int l, int r)
     {
-        for (int i = k; i < p.size(); i += ls_one(i))
-            p[i] += v;
+        lazy[p] = false;
+
+        if (l == r)
+            return;
+
+        l_values[left(p)] = lazy[left(p)]
+                                ? prop_lazy(l_values[left(p)], l_values[p])
+                                : l_values[p];
+        l_values[right(p)] = lazy[right(p)]
+                                 ? prop_lazy(l_values[right(p)], l_values[p])
+                                 : l_values[p];
+
+        lazy[left(p)] = true;
+        lazy[right(p)] = true;
     }
 
-    int size()
+    void build(int p, int l, int r)
     {
-        return _size;
+        if (l == r)
+        {
+            p_values[p] = simple_node(l);
+            return;
+        }
+
+        build(left(p), l, (l + r) / 2);
+        build(right(p), (l + r) / 2 + 1, r);
+
+        p_values[p] = prop(p_values[left(p)], p_values[right(p)]);
     }
+
+    void set(int p, int l, int r, int i, int v)
+    {
+        if (lazy[p])
+        {
+            update_lazy(p, l, r);
+            propagate_lazy(p, l, r);
+        }
+
+        if (l == r)
+        {
+            values[l] = v;
+            p_values[p] = simple_node(l);
+            return;
+        }
+
+        if (i <= (l + r) / 2)
+            set(left(p), l, (l + r) / 2, i, v);
+        else
+            set(right(p), (l + r) / 2 + 1, r, i, v);
+
+        p_values[p] = prop(p_values[left(p)], p_values[right(p)]);
+    }
+
+    int query(int p, int l, int r, int lq, int rq)
+    {
+        if (lazy[p])
+        {
+            update_lazy(p, l, r);
+            propagate_lazy(p, l, r);
+        }
+
+        if (lq <= l && r <= rq)
+            return p_values[p];
+
+        int l1 = l, r1 = (l + r) / 2;
+        int l2 = (l + r) / 2 + 1, r2 = r;
+
+        if (l1 > rq || lq > r1)
+            return query(right(p), l2, r2, lq, rq);
+        if (l2 > rq || lq > r2)
+            return query(left(p), l1, r1, lq, rq);
+
+        int lt = query(left(p), l1, r1, lq, rq);
+        int rt = query(right(p), l2, r2, lq, rq);
+
+        return prop(lt, rt);
+    }
+
+    void set_rank(int p, int l, int r, int lq, int rq, int value)
+    {
+        if (lazy[p])
+        {
+            update_lazy(p, l, r);
+            propagate_lazy(p, l, r);
+        }
+
+        if (l > rq || lq > r)
+            return;
+
+        if (lq <= l && r <= rq)
+        {
+            lazy[p] = true;
+            l_values[p] = value;
+            update_lazy(p, l, r);
+            propagate_lazy(p, l, r);
+            return;
+        }
+
+        set_rank(left(p), l, (l + r) / 2, lq, rq, value);
+        set_rank(right(p), (l + r) / 2 + 1, r, lq, rq, value);
+
+        p_values[p] = prop(p_values[left(p)], p_values[right(p)]);
+    }
+
+    int get(int p, int l, int r, int i)
+    {
+        if (lazy[p])
+        {
+            update_lazy(p, l, r);
+            propagate_lazy(p, l, r);
+        }
+
+        if (l == r)
+            return values[i];
+
+        if (i <= (l + r) / 2)
+            return get(left(p), l, (l + r) / 2, i);
+
+        return get(right(p), (l + r) / 2 + 1, r, i);
+    }
+
+public:
+    SegmentTreeLazy(vi &a)
+    {
+        values = a;
+        n = a.size();
+        p_values.assign(4 * n, 0);
+        lazy.assign(4 * n, false);
+        l_values.assign(4 * n, 0);
+        build(1, 0, n - 1);
+    }
+
+    int query(int i, int j) { return query(1, 0, n - 1, i, j); }
+
+    void set(int i, int v) { set(1, 0, n - 1, i, v); }
+
+    void set_rank(int i, int j, int v) { set_rank(1, 0, n - 1, i, j, v); }
+
+    int get(int i) { return get(1, 0, n - 1, i); }
 };
 
 \end{lstlisting}
@@ -1642,261 +1300,90 @@ struct avl {
 
 \end{lstlisting}
 \end{multicols}
-Disjoint Set Union
+Abi
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
- 
-struct dsu {
+class Abi
+{
+
+private:
     vi p;
-    void init(int n) {
-        p = vi(n, -1);
+    int _size;
+
+    int ls_one(int i) { return i & (-i); }
+
+public:
+    Abi(int n)
+    {
+        _size = n;
+        p.assign(n + 1, 0);
     }
-    int get(int x) {
-        if (p[x] < 0)
-            return x;
-        return p[x] = get(p[x]);
-    }
-    void unite(int a, int b) {
-        a = get(a);
-        b = get(b);
-        if (a != b) {
-            if (p[a] > p[b])
-                swap(a, b);
-            p[a] += p[b];
-            p[b] = a;
+
+    int rsq(int k)
+    {
+        int sum = 0;
+
+        for (int i = k; i > 0; i -= ls_one(i))
+        {
+            sum += p[i];
         }
+
+        return sum;
+    }
+
+    int sum(int a, int b) { return rsq(b) - rsq(a - 1); }
+
+    void adjust_sum(int k, int v)
+    {
+        for (int i = k; i < p.size(); i += ls_one(i))
+            p[i] += v;
+    }
+
+    int size()
+    {
+        return _size;
     }
 };
-
 
 \end{lstlisting}
 \end{multicols}
-Segment Tree Lazy
+Sqrt Decomposition
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
-class SegmentTreeLazy
-{
-private:
-    vi values;
-    vector<bool> lazy;
-    vi l_values;
-    vi p_values;
+
+struct sqd {
     int n;
-
-    int left(int p) { return p << 1; };
-
-    int right(int p) { return (p << 1) + 1; }
-
-    int simple_node(int index) { return values[index]; }
-
-    int prop(int x, int y) { return x + y; }
-
-    int prop_lazy(int x, int y) { return x + y; }
-
-    int prop_lazy_up(int x, int y, int s) { return x + y * s; }
-
-    void update_lazy(int p, int l, int r)
-    {
-        if (l == r)
-        {
-            values[l] = prop_lazy(values[l], l_values[p]);
-        }
-
-        p_values[p] = prop_lazy_up(p_values[p], l_values[p], r - l + 1);
-    }
-
-    void propagate_lazy(int p, int l, int r)
-    {
-        lazy[p] = false;
-
-        if (l == r)
-            return;
-
-        l_values[left(p)] = lazy[left(p)]
-                                ? prop_lazy(l_values[left(p)], l_values[p])
-                                : l_values[p];
-        l_values[right(p)] = lazy[right(p)]
-                                 ? prop_lazy(l_values[right(p)], l_values[p])
-                                 : l_values[p];
-
-        lazy[left(p)] = true;
-        lazy[right(p)] = true;
-    }
-
-    void build(int p, int l, int r)
-    {
-        if (l == r)
-        {
-            p_values[p] = simple_node(l);
-            return;
-        }
-
-        build(left(p), l, (l + r) / 2);
-        build(right(p), (l + r) / 2 + 1, r);
-
-        p_values[p] = prop(p_values[left(p)], p_values[right(p)]);
-    }
-
-    void set(int p, int l, int r, int i, int v)
-    {
-        if (lazy[p])
-        {
-            update_lazy(p, l, r);
-            propagate_lazy(p, l, r);
-        }
-
-        if (l == r)
-        {
-            values[l] = v;
-            p_values[p] = simple_node(l);
-            return;
-        }
-
-        if (i <= (l + r) / 2)
-            set(left(p), l, (l + r) / 2, i, v);
-        else
-            set(right(p), (l + r) / 2 + 1, r, i, v);
-
-        p_values[p] = prop(p_values[left(p)], p_values[right(p)]);
-    }
-
-    int query(int p, int l, int r, int lq, int rq)
-    {
-        if (lazy[p])
-        {
-            update_lazy(p, l, r);
-            propagate_lazy(p, l, r);
-        }
-
-        if (lq <= l && r <= rq)
-            return p_values[p];
-
-        int l1 = l, r1 = (l + r) / 2;
-        int l2 = (l + r) / 2 + 1, r2 = r;
-
-        if (l1 > rq || lq > r1)
-            return query(right(p), l2, r2, lq, rq);
-        if (l2 > rq || lq > r2)
-            return query(left(p), l1, r1, lq, rq);
-
-        int lt = query(left(p), l1, r1, lq, rq);
-        int rt = query(right(p), l2, r2, lq, rq);
-
-        return prop(lt, rt);
-    }
-
-    void set_rank(int p, int l, int r, int lq, int rq, int value)
-    {
-        if (lazy[p])
-        {
-            update_lazy(p, l, r);
-            propagate_lazy(p, l, r);
-        }
-
-        if (l > rq || lq > r)
-            return;
-
-        if (lq <= l && r <= rq)
-        {
-            lazy[p] = true;
-            l_values[p] = value;
-            update_lazy(p, l, r);
-            propagate_lazy(p, l, r);
-            return;
-        }
-
-        set_rank(left(p), l, (l + r) / 2, lq, rq, value);
-        set_rank(right(p), (l + r) / 2 + 1, r, lq, rq, value);
-
-        p_values[p] = prop(p_values[left(p)], p_values[right(p)]);
-    }
-
-    int get(int p, int l, int r, int i)
-    {
-        if (lazy[p])
-        {
-            update_lazy(p, l, r);
-            propagate_lazy(p, l, r);
-        }
-
-        if (l == r)
-            return values[i];
-
-        if (i <= (l + r) / 2)
-            return get(left(p), l, (l + r) / 2, i);
-
-        return get(right(p), (l + r) / 2 + 1, r, i);
-    }
-
-public:
-    SegmentTreeLazy(vi &a)
-    {
-        values = a;
+    int b;
+    vi a;
+    vi bsum;
+    sqd(vi &a) {
         n = a.size();
-        p_values.assign(4 * n, 0);
-        lazy.assign(4 * n, false);
-        l_values.assign(4 * n, 0);
-        build(1, 0, n - 1);
+        b = sqrt(n);
+        this->a = a;
+        bsum.assign(b + 1, 0);
+        for (int i = 0; i < n; i++)
+            bsum[i / b] += a[i];
     }
-
-    int query(int i, int j) { return query(1, 0, n - 1, i, j); }
-
-    void set(int i, int v) { set(1, 0, n - 1, i, v); }
-
-    void set_rank(int i, int j, int v) { set_rank(1, 0, n - 1, i, j, v); }
-
-    int get(int i) { return get(1, 0, n - 1, i); }
+    void update(int i, int v) {
+        bsum[i / b] += v - a[i];
+        a[i] = v;
+    }
+    int query(int l, int r) {
+        int sum = 0;
+        for (int i = l; i <= r; i++)
+            if (i % b == 0 && i + b - 1 <= r) {
+                sum += bsum[i / b];
+                i += b - 1;
+            } else
+                sum += a[i];
+        return sum;
+    }
 };
+
 
 \end{lstlisting}
 \end{multicols}
 \section{String}
-Z Function
-\begin{multicols}{2}
-\begin{lstlisting}[language=C++]
-// Z[i] is the length of the longest substring
-// starting from S[i] which is also a prefix of S.
-vi z_function(string s)
-{
-    int n = (int)s.length();
-    vi z(n);
-
-    for (int i = 1, l = 0, r = 0; i < n; ++i)
-    {
-        if (i <= r)
-            z[i] = min(r - i + 1, z[i - l]);
-        while (i + z[i] < n && s[z[i]] == s[i + z[i]])
-            ++z[i];
-        if (i + z[i] - 1 > r)
-            l = i, r = i + z[i] - 1;
-    }
-    return z;
-}
-
-// suff[i] = length of the longest common suffix of s and s[0..i]
-vi suffixes(const string &s)
-{
-    int n = s.length();
-
-    vi suff(n, n);
-
-    for (int i = n - 2, g = n - 1, f; i >= 0; --i)
-    {
-        if (i > g && suff[i + n - 1 - f] != i - g)
-            suff[i] = min(suff[i + n - 1 - f], i - g);
-        else
-        {
-            for (g = min(g, f = i); g >= 0 && s[g] == s[g + n - 1 - f]; --g)
-                ;
-            suff[i] = f - g;
-        }
-    }
-
-    return suff;
-}
-
-\end{lstlisting}
-\end{multicols}
 Suffix Array
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
@@ -2089,6 +1576,102 @@ private:
 
 \end{lstlisting}
 \end{multicols}
+Z Function
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+// Z[i] is the length of the longest substring
+// starting from S[i] which is also a prefix of S.
+vi z_function(string s)
+{
+    int n = (int)s.length();
+    vi z(n);
+
+    for (int i = 1, l = 0, r = 0; i < n; ++i)
+    {
+        if (i <= r)
+            z[i] = min(r - i + 1, z[i - l]);
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]])
+            ++z[i];
+        if (i + z[i] - 1 > r)
+            l = i, r = i + z[i] - 1;
+    }
+    return z;
+}
+
+// suff[i] = length of the longest common suffix of s and s[0..i]
+vi suffixes(const string &s)
+{
+    int n = s.length();
+
+    vi suff(n, n);
+
+    for (int i = n - 2, g = n - 1, f; i >= 0; --i)
+    {
+        if (i > g && suff[i + n - 1 - f] != i - g)
+            suff[i] = min(suff[i + n - 1 - f], i - g);
+        else
+        {
+            for (g = min(g, f = i); g >= 0 && s[g] == s[g + n - 1 - f]; --g)
+                ;
+            suff[i] = f - g;
+        }
+    }
+
+    return suff;
+}
+
+\end{lstlisting}
+\end{multicols}
+Kmp Pf
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+vi prefix_function(string p)
+{
+    vi pf(p.size());
+
+    pf[0] = 0;
+    int k = 0;
+
+    for (int i = 1; i < p.size(); i++)
+    {
+        while (k > 0 && p[k] != p[i])
+            k = pf[k - 1];
+
+        if (p[k] == p[i])
+            k++;
+
+        pf[i] = k;
+    }
+
+    return pf;
+}
+
+vi kmp(string t, string p)
+{
+    vi result;
+    vi pf = prefix_function(p);
+    int k = 0;
+
+    for (int i = 0; i < t.size(); i++)
+    {
+        while (k > 0 && p[k] != t[i])
+            k = pf[k - 1];
+
+        if (p[k] == t[i])
+            k++;
+
+        if (k == p.size())
+        {
+            result.push_back(i - (p.size() - 1));
+            k = pf[k - 1];
+        }
+    }
+
+    return result;
+}
+
+\end{lstlisting}
+\end{multicols}
 Trie
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
@@ -2207,53 +1790,744 @@ public:
 
 \end{lstlisting}
 \end{multicols}
-Kmp Pf
+\section{Graph}
+Topological Sort
 \begin{multicols}{2}
 \begin{lstlisting}[language=C++]
-vi prefix_function(string p)
+vector<int> topoSort(int V, vector<int> adj[])
 {
-    vi pf(p.size());
+    vector<int> in(V);
+    vector<int> resp;
 
-    pf[0] = 0;
-    int k = 0;
-
-    for (int i = 1; i < p.size(); i++)
+    for (int i = 0; i < V; i++)
     {
-        while (k > 0 && p[k] != p[i])
-            k = pf[k - 1];
-
-        if (p[k] == p[i])
-            k++;
-
-        pf[i] = k;
+        for (int j = 0; j < adj[i].size(); j++)
+        {
+            in[adj[i][j]]++;
+        }
     }
 
-    return pf;
+    queue<int> q;
+
+    for (int i = 0; i < V; i++)
+    {
+        if (in[i] == 0)
+            q.push(i);
+    }
+
+    while (q.size() != 0)
+    {
+        int n = q.front();
+        q.pop();
+
+        for (int i = 0; i < adj[n].size(); i++)
+        {
+            in[adj[n][i]]--;
+
+            if (in[adj[n][i]] == 0)
+                q.push(adj[n][i]);
+        }
+
+        resp.push_back(n);
+    }
+
+    return resp;
 }
 
-vi kmp(string t, string p)
+\end{lstlisting}
+\end{multicols}
+Dijsktra
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+int infinite = (int)1e9;
+
+// O(V^2)
+vector<int> dijkstra1(int V, vector<vector<int>> adj[], int S)
 {
-    vi result;
-    vi pf = prefix_function(p);
-    int k = 0;
+    vector<int> d;
 
-    for (int i = 0; i < t.size(); i++)
+    d.assign(V, infinite);
+    d[S] = 0;
+
+    vector<bool> mask;
+
+    mask.assign(V, false);
+
+    for (int i = 0; i < V; i++)
     {
-        while (k > 0 && p[k] != t[i])
-            k = pf[k - 1];
+        int m = infinite;
+        int act = -1;
 
-        if (p[k] == t[i])
-            k++;
-
-        if (k == p.size())
+        for (int j = 0; j < V; j++)
         {
-            result.push_back(i - (p.size() - 1));
-            k = pf[k - 1];
+            if (mask[j])
+                continue;
+
+            if (m > d[j])
+            {
+                m = d[j];
+                act = j;
+            }
+        }
+
+        for (int j = 0; j < adj[act].size(); j++)
+        {
+            if (d[act] + adj[act][j][1] < d[adj[act][j][0]])
+            {
+                d[adj[act][j][0]] = d[act] + adj[act][j][1];
+            }
+        }
+
+        mask[act] = true;
+    }
+
+    return d;
+}
+
+// O((V+E)log(E))
+vi dijkstra2(int V, vii adj[], int S)
+{
+    vector<int> d;
+
+    d.assign(V, infinite);
+    d[S] = 0;
+
+    priority_queue<pair<int, int>> q;
+    q.push({d[S], S});
+
+    while (!q.empty())
+    {
+        int act = q.top().second;
+        int m = abs(q.top().first);
+        q.pop();
+
+        if (m > d[act])
+            continue;
+
+        for (int j = 0; j < adj[act].size(); j++)
+        {
+            if (d[act] + adj[act][j].second < d[adj[act][j].first])
+            {
+                d[adj[act][j].first] = d[act] + adj[act][j].second;
+                q.push({-d[adj[act][j].first], adj[act][j].first});
+            }
+        }
+    }
+
+    return d;
+}
+
+\end{lstlisting}
+\end{multicols}
+Bridge Edges
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+vector<bool> visited;
+vector<int> t;
+vector<int> low;
+set<pair<int, int>> bridges;
+
+void dfs_bridges(vector<int> adj[], int n, int p, int q)
+{
+    t[n] = q;
+    low[n] = q++;
+    visited[n] = true;
+
+    int j = 0;
+
+    for (int i = 0; i < adj[n].size(); i++)
+    {
+        if (!visited[adj[n][i]])
+        {
+            dfs_bridges(adj, adj[n][i], n, q);
+            low[n] = min(low[adj[n][i]], low[n]);
+            j++;
+        }
+        else if (adj[n][i] != p)
+        {
+            low[n] = min(t[adj[n][i]], low[n]);
+        }
+    }
+
+    if (t[n] == low[n] && p != -1)
+    {
+        bridges.insert({min(n, p), max(n, p)});
+    }
+}
+
+set<pair<int, int>> bridge_edges(int V, vector<int> adj[])
+{
+    visited.assign(V, false);
+    t.assign(V, -1);
+    low.assign(V, -1);
+    bridges = set<pair<int, int>>();
+
+    for (int i = 0; i < V; i++)
+    {
+        if (!visited[i])
+        {
+            dfs_bridges(adj, i, -1, 1);
+        }
+    }
+
+    return bridges;
+}
+
+\end{lstlisting}
+\end{multicols}
+Prim
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+int spanningTreePrim(int V, vector<vector<int>> adj[])
+{
+
+    priority_queue<pair<int, int>> q;
+
+    vector<bool> mask;
+    mask.assign(V, false);
+    mask[0] = true;
+
+    int cost = 0;
+
+    for (int i = 0; i < adj[0].size(); i++)
+    {
+        q.push({-adj[0][i][1], adj[0][i][0]});
+    }
+
+    while (q.size() != 0)
+    {
+        auto aux = q.top();
+        q.pop();
+
+        int k = aux.second;
+        if (mask[k])
+            continue;
+
+        mask[k] = true;
+        cost += abs(aux.first);
+
+        for (int i = 0; i < adj[k].size(); i++)
+        {
+            if (!mask[adj[k][i][0]])
+            {
+                q.push({-adj[k][i][1], adj[k][i][0]});
+            }
+        }
+    }
+
+    return cost;
+}
+
+\end{lstlisting}
+\end{multicols}
+Kruskal
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+class ufds
+{
+private:
+    vector<int> p, rank, sizeSet;
+    int disjoinSet;
+
+public:
+    ufds(int n)
+    {
+        p.assign(n, 0);
+        rank.assign(n, 0);
+        sizeSet.assign(n, 1);
+        disjoinSet = n;
+        for (int i = 0; i < n; i++)
+        {
+            p[i] = i;
+        }
+    }
+
+    int find(int n)
+    {
+        if (n == p[n])
+            return n;
+        p[n] = find(p[n]);
+        return p[n];
+    }
+
+    bool isSameSet(int i, int j) { return find(i) == find(j); }
+
+    void unionSet(int i, int j)
+    {
+        if (!isSameSet(i, j))
+        {
+            disjoinSet--;
+            int x = find(i);
+            int y = find(j);
+            if (rank[x] > rank[y])
+            {
+                p[y] = x;
+                sizeSet[x] += sizeSet[y];
+            }
+            else
+            {
+                p[x] = y;
+                sizeSet[y] += sizeSet[x];
+                if (rank[x] == rank[y])
+                    rank[y]++;
+            }
+        }
+    }
+
+    int numDisjoinset() { return disjoinSet; }
+
+    int sizeofSet(int i) { return sizeSet[find(i)]; }
+};
+
+// Function to find sum of weights of edges of the Minimum Spanning Tree.
+int spanningTreeKruskal(int V, vector<vector<int>> adj[])
+{
+    ufds dsu(V);
+
+    vector<pair<int, pair<int, int>>> a;
+
+    for (int i = 0; i < V; i++)
+    {
+        for (int j = 0; j < adj[i].size(); j++)
+        {
+            a.push_back({adj[i][j][1], {i, adj[i][j][0]}});
+        }
+    }
+
+    sort(a.begin(), a.end());
+
+    int cost = 0;
+
+    for (int i = 0; i < a.size(); i++)
+    {
+        if (!dsu.isSameSet(a[i].second.first, a[i].second.second))
+        {
+            cost += a[i].first;
+
+            dsu.unionSet(a[i].second.first, a[i].second.second);
+        }
+    }
+
+    return cost;
+}
+
+\end{lstlisting}
+\end{multicols}
+Bellman Ford
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+int infinite = (int)1e9;
+
+vector<int> bellman_ford(int V, vector<vector<int>> &edges, int S)
+{
+    vector<int> d;
+    d.assign(V, infinite);
+    d[S] = 0;
+
+    for (int i = 0; i < V - 1; i++)
+    {
+        for (int j = 0; j < edges.size(); j++)
+        {
+            if (d[edges[j][0]] + edges[j][2] < d[edges[j][1]])
+            {
+                d[edges[j][1]] = d[edges[j][0]] + edges[j][2];
+            }
+        }
+    }
+
+    for (int j = 0; j < edges.size(); j++)
+    {
+        if (d[edges[j][0]] + edges[j][2] < d[edges[j][1]])
+        {
+            vector<int> resp(1);
+            resp[0] = -1;
+
+            return resp;
+        }
+    }
+
+    return d;
+}
+
+\end{lstlisting}
+\end{multicols}
+Max Flow
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+template <typename flow_type>
+struct dinic
+{
+    struct edge
+    {
+        size_t src, dst, rev;
+        flow_type flow, cap;
+    };
+
+    int n;
+    vector<vector<edge>> adj;
+
+    dinic(int n) : n(n), adj(n), level(n), q(n), it(n) {}
+
+    void add_edge(size_t src, size_t dst, flow_type cap, flow_type rcap = 0)
+    {
+        adj[src].push_back({src, dst, adj[dst].size(), 0, cap});
+        if (src == dst)
+            adj[src].back().rev++;
+        adj[dst].push_back({dst, src, adj[src].size() - 1, 0, rcap});
+    }
+
+    vector<int> level, q, it;
+
+    bool bfs(int source, int sink)
+    {
+        fill(level.begin(), level.end(), -1);
+        for (int qf = level[q[0] = sink] = 0, qb = 1; qf < qb; ++qf)
+        {
+            sink = q[qf];
+            for (edge &e : adj[sink])
+            {
+                edge &r = adj[e.dst][e.rev];
+                if (r.flow < r.cap && level[e.dst] == -1)
+                    level[q[qb++] = e.dst] = 1 + level[sink];
+            }
+        }
+        return level[source] != -1;
+    }
+
+    flow_type augment(int source, int sink, flow_type flow)
+    {
+        if (source == sink)
+            return flow;
+        for (; it[source] != adj[source].size(); ++it[source])
+        {
+            edge &e = adj[source][it[source]];
+            if (e.flow < e.cap && level[e.dst] + 1 == level[source])
+            {
+                flow_type delta = augment(e.dst, sink, min(flow, e.cap - e.flow));
+                if (delta > 0)
+                {
+                    e.flow += delta;
+                    adj[e.dst][e.rev].flow -= delta;
+                    return delta;
+                }
+            }
+        }
+        return 0;
+    }
+
+    flow_type max_flow(int source, int sink)
+    {
+        for (int u = 0; u < n; ++u)
+            for (edge &e : adj[u])
+                e.flow = 0;
+        flow_type flow = 0;
+        flow_type oo = numeric_limits<flow_type>::max();
+
+        while (bfs(source, sink))
+        {
+            fill(it.begin(), it.end(), 0);
+            for (flow_type f; (f = augment(source, sink, oo)) > 0;)
+                flow += f;
+
+        } // level[u] = -1 => source side of min cut
+        return flow;
+    }
+};
+
+\end{lstlisting}
+\end{multicols}
+Centroid Descomposition
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+const int MAXN = 2e5 + 5;
+
+vi ady[MAXN];
+
+bitset<MAXN> is_centroid;
+
+int sz[MAXN], ct_par[MAXN];
+void centroid_dfs(int node, int parent)
+{
+    sz[node] = 1;
+    for (int &nxt : ady[node])
+    {
+        if (is_centroid[nxt] || nxt == parent)
+            continue;
+        centroid_dfs(nxt, node);
+        sz[node] += sz[nxt];
+    }
+}
+int get_centroid(int node, int parent, int tree_sz)
+{
+    for (int nxt : ady[node])
+    {
+        if (is_centroid[nxt] || nxt == parent)
+            continue;
+        if (sz[nxt] * 2 > tree_sz)
+            return get_centroid(nxt, node, tree_sz);
+    }
+    return node;
+}
+void centroid_decomp(int node, int parent = -1)
+{
+    centroid_dfs(node, -1);
+    int tree_sz = sz[node];
+    int centroid = get_centroid(node, -1, tree_sz);
+    is_centroid[centroid] = 1;
+    ct_par[centroid] = parent;
+
+    for (int &child : ady[centroid])
+    {
+        if (is_centroid[child])
+            continue;
+        centroid_decomp(child, centroid);
+    }
+}
+
+void solve()
+{
+}
+
+int32_t main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    int t;
+    cin >> t;
+
+    for (int i = 0; i < t; i++)
+    {
+        solve();
+    }
+
+    return 0;
+}
+\end{lstlisting}
+\end{multicols}
+Floyd Warshall
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+int infinite = (int)1e8;
+
+void shortest_distance(vector<vector<int>> &matrix)
+{
+    for (int k = 0; k < matrix.size(); k++)
+    {
+        for (int i = 0; i < matrix.size(); i++)
+        {
+            for (int j = 0; j < matrix[0].size(); j++)
+            {
+                matrix[i][j] = min(matrix[i][j], matrix[i][k] + matrix[k][j]);
+            }
+        }
+    }
+}
+
+void find_path_k(vector<vector<bool>> &matrix, int k)
+{
+    for (int x = 0; x < k; x++)
+    {
+        for (int i = 0; i < matrix.size(); i++)
+        {
+            for (int j = 0; j < matrix[0].size(); j++)
+            {
+                matrix[i][j] = matrix[i][j] || (matrix[i][x] && matrix[x][j]);
+            }
+        }
+    }
+}
+
+\end{lstlisting}
+\end{multicols}
+Dfs Bfs
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+void dfs_g(int n, int c, vi adj[], vector<bool> &visited, vi &cc)
+{
+    visited[n] = true;
+    cc[n] = c;
+
+    for (int i = 0; i < adj[n].size(); i++)
+    {
+        if (!visited[adj[n][i]])
+            dfs_g(adj[n][i], c, adj, visited, cc);
+    }
+}
+
+void dfs_t(int n, int p, int d, vi adj[], vi &deep)
+{
+    deep[n] = d;
+
+    for (int i = 0; i < adj[n].size(); i++)
+    {
+        if (p != adj[n][i])
+            dfs_t(adj[n][i], n, d + 1, adj, deep);
+    }
+}
+
+vi bfs(int node, int n, vi adj[])
+{
+    vi result(n);
+    vector<bool> visited;
+    visited.assign(n, false);
+
+    queue<int> q;
+    visited[node] = true;
+
+    q.push(node);
+
+    while (q.size() != 0)
+    {
+        int w = q.front();
+        q.pop();
+
+        for (int i = 0; i < adj[w].size(); i++)
+        {
+            if (!visited[adj[w][i]])
+            {
+                q.push(adj[w][i]);
+                result[adj[w][i]] = result[w] + 1;
+                visited[adj[w][i]] = true;
+            }
         }
     }
 
     return result;
 }
+
+\end{lstlisting}
+\end{multicols}
+Scc Tarjans
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+stack<int> q;
+vector<bool> mask;
+vector<int> cc_list;
+
+void g_transp(int V, vector<int> adj[], vector<int> new_adj[])
+{
+    for (int i = 0; i < V; i++)
+    {
+        for (int j = 0; j < adj[i].size(); j++)
+        {
+            new_adj[adj[i][j]].push_back(i);
+        }
+    }
+}
+
+void dfs_visit(int n, vector<int> adj[], int cc)
+{
+    mask[n] = true;
+
+    for (int i = 0; i < adj[n].size(); i++)
+    {
+        if (!mask[adj[n][i]])
+            dfs_visit(adj[n][i], adj, cc);
+    }
+
+    if (cc == -1)
+        q.push(n);
+    else
+    {
+        cc_list[n] = cc;
+    }
+}
+
+void tarjans(int V, vector<int> adj[])
+{
+    vector<int> new_adj[V];
+    g_transp(V, adj, new_adj);
+
+    mask.assign(V, false);
+    cc_list.assign(V, -1);
+
+    for (int i = 0; i < V; i++)
+    {
+        if (mask[i])
+            continue;
+
+        dfs_visit(i, adj, -1);
+    }
+
+    for (int i = 0; i < V; i++)
+        mask[i] = false;
+
+    int ind = 0;
+
+    while (q.size() != 0)
+    {
+        int act = q.top();
+
+        q.pop();
+
+        if (!mask[act])
+        {
+            dfs_visit(act, new_adj, ind);
+            ind++;
+        }
+    }
+}
+
+\end{lstlisting}
+\end{multicols}
+Articulation Point
+\begin{multicols}{2}
+\begin{lstlisting}[language=C++]
+vector<bool> visited;
+vi t;
+vi low;
+vector<bool> art;
+
+void dfs_art(vi adj[], int n, int p, int q)
+{
+    t[n] = q;
+    low[n] = q++;
+    visited[n] = true;
+
+    int j = 0;
+
+    for (int i = 0; i < adj[n].size(); i++)
+    {
+        if (!visited[adj[n][i]])
+        {
+            dfs_art(adj, adj[n][i], n, q);
+            low[n] = min(low[adj[n][i]], low[n]);
+            j++;
+
+            if (low[adj[n][i]] >= t[n] && p != -1)
+            {
+                art[n] = true;
+            }
+        }
+        else if (adj[n][i] != p)
+        {
+            low[n] = min(t[adj[n][i]], low[n]);
+        }
+    }
+
+    if (p == -1)
+    {
+        art[n] = j >= 2;
+    }
+}
+
+void articulationPoints(int V, vi adj[])
+{
+    visited.assign(V, false);
+    t.assign(V, -1);
+    low.assign(V, -1);
+    art.assign(V, false);
+
+    for (int i = 0; i < V; i++)
+    {
+        if (!visited[i])
+        {
+            dfs_art(adj, i, -1, 1);
+        }
+    }
+}
+
 
 \end{lstlisting}
 \end{multicols}

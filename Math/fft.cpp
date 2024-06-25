@@ -79,6 +79,8 @@ vector<point> convolve(vector<point> &a, vector<point> &b)
     return c;
 }
 
+// end
+
 int32_t main()
 {
     ios_base::sync_with_stdio(0);
@@ -130,5 +132,3 @@ int32_t main()
     }
     cout << "\n";
 }
-
-// end
