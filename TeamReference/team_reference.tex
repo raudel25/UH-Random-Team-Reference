@@ -41,9 +41,15 @@
 
 \begin{document}
 
-\section{Template}
-Main
+\begin{center} \textbf{ UH Random Team Reference } \end{center} \vspace*{50pt} % Añade un espacio vertical de 50 puntos
+
+\begin{multicols}{2} \tableofcontents \end{multicols}
+
+\enlargethispage*{\baselineskip} \pagebreak
+
+\section{TEMPLATE}
 \begin{multicols}{2}
+[\subsection{MAIN}\ ]
 \begin{lstlisting}[language=C++]
 #include <bits/stdc++.h>
 
@@ -78,9 +84,9 @@ int32_t main()
 
 \end{lstlisting}
 \end{multicols}
-\section{Math}
-Ntt
+\enlargethispage*{\baselineskip}\section{MATH}
 \begin{multicols}{2}
+[\subsection{NTT}\ ]
 \begin{lstlisting}[language=C++]
 using ll = long long;
 
@@ -146,8 +152,8 @@ vector<ll> convolve(const vector<ll> &a, const vector<ll> &b)
 
 \end{lstlisting}
 \end{multicols}
-Matrix Pow
 \begin{multicols}{2}
+[\subsection{MATRIX POW}\ ]
 \begin{lstlisting}[language=C++]
 const int MAXN = 2;
 
@@ -195,8 +201,8 @@ Matrix operator^(Matrix &base, ll e)
 
 \end{lstlisting}
 \end{multicols}
-Fft
 \begin{multicols}{2}
+[\subsection{FFT}\ ]
 \begin{lstlisting}[language=C++]
 struct point
 {
@@ -278,8 +284,8 @@ vector<point> convolve(vector<point> &a, vector<point> &b)
 
 \end{lstlisting}
 \end{multicols}
-Fwht
 \begin{multicols}{2}
+[\subsection{FWHT}\ ]
 \begin{lstlisting}[language=C++]
 
 using ll = long long;
@@ -553,9 +559,9 @@ vector<T> FWHT_XOR(vector<T> a, vector<T> b)
 
 \end{lstlisting}
 \end{multicols}
-\section{Geometry}
-Basics
+\enlargethispage*{\baselineskip}\section{GEOMETRY}
 \begin{multicols}{2}
+[\subsection{BASICS}\ ]
 \begin{lstlisting}[language=C++]
 
 db DEG_to_RAD(db d) { return d*M_PI / 180.0; }
@@ -710,8 +716,8 @@ struct circle {
 
 \end{lstlisting}
 \end{multicols}
-Polygon
 \begin{multicols}{2}
+[\subsection{POLYGON}\ ]
 \begin{lstlisting}[language=C++]
 
 struct polygon {
@@ -764,9 +770,9 @@ struct polygon {
 
 \end{lstlisting}
 \end{multicols}
-\section{DataStructure}
-Segment Tree
+\enlargethispage*{\baselineskip}\section{DATA STRUCTURE}
 \begin{multicols}{2}
+[\subsection{SEGMENT TREE}\ ]
 \begin{lstlisting}[language=C++]
 class SegmentTree
 {
@@ -852,8 +858,8 @@ public:
 
 \end{lstlisting}
 \end{multicols}
-Disjoint Set Union
 \begin{multicols}{2}
+[\subsection{DISJOINT SET UNION}\ ]
 \begin{lstlisting}[language=C++]
  
 struct dsu {
@@ -881,8 +887,8 @@ struct dsu {
 
 \end{lstlisting}
 \end{multicols}
-Pbds
 \begin{multicols}{2}
+[\subsection{PBDS}\ ]
 \begin{lstlisting}[language=C++]
 #include <bits/extc++.h> // pbds
 using namespace __gnu_pbds;
@@ -911,8 +917,8 @@ int main()
 
 \end{lstlisting}
 \end{multicols}
-Segment Tree Lazy
 \begin{multicols}{2}
+[\subsection{SEGMENT TREE LAZY}\ ]
 \begin{lstlisting}[language=C++]
 class SegmentTreeLazy
 {
@@ -1090,8 +1096,8 @@ public:
 
 \end{lstlisting}
 \end{multicols}
-Avl
 \begin{multicols}{2}
+[\subsection{AVL}\ ]
 \begin{lstlisting}[language=C++]
 
 struct avl {
@@ -1300,8 +1306,8 @@ struct avl {
 
 \end{lstlisting}
 \end{multicols}
-Abi
 \begin{multicols}{2}
+[\subsection{ABI}\ ]
 \begin{lstlisting}[language=C++]
 class Abi
 {
@@ -1347,8 +1353,8 @@ public:
 
 \end{lstlisting}
 \end{multicols}
-Sqrt Decomposition
 \begin{multicols}{2}
+[\subsection{SQRT DECOMPOSITION}\ ]
 \begin{lstlisting}[language=C++]
 
 struct sqd {
@@ -1383,9 +1389,9 @@ struct sqd {
 
 \end{lstlisting}
 \end{multicols}
-\section{String}
-Suffix Array
+\enlargethispage*{\baselineskip}\section{STRING}
 \begin{multicols}{2}
+[\subsection{SUFFIX ARRAY}\ ]
 \begin{lstlisting}[language=C++]
 class SuffixArray
 {
@@ -1576,8 +1582,8 @@ private:
 
 \end{lstlisting}
 \end{multicols}
-Z Function
 \begin{multicols}{2}
+[\subsection{Z FUNCTION}\ ]
 \begin{lstlisting}[language=C++]
 // Z[i] is the length of the longest substring
 // starting from S[i] which is also a prefix of S.
@@ -1622,8 +1628,8 @@ vi suffixes(const string &s)
 
 \end{lstlisting}
 \end{multicols}
-Kmp Pf
 \begin{multicols}{2}
+[\subsection{KMP PF}\ ]
 \begin{lstlisting}[language=C++]
 vi prefix_function(string p)
 {
@@ -1672,8 +1678,8 @@ vi kmp(string t, string p)
 
 \end{lstlisting}
 \end{multicols}
-Trie
 \begin{multicols}{2}
+[\subsection{TRIE}\ ]
 \begin{lstlisting}[language=C++]
 class Trie
 {
@@ -1790,9 +1796,9 @@ public:
 
 \end{lstlisting}
 \end{multicols}
-\section{Graph}
-Topological Sort
+\enlargethispage*{\baselineskip}\section{GRAPH}
 \begin{multicols}{2}
+[\subsection{TOPOLOGICAL SORT}\ ]
 \begin{lstlisting}[language=C++]
 vector<int> topoSort(int V, vector<int> adj[])
 {
@@ -1836,8 +1842,8 @@ vector<int> topoSort(int V, vector<int> adj[])
 
 \end{lstlisting}
 \end{multicols}
-Dijsktra
 \begin{multicols}{2}
+[\subsection{DIJSKTRA}\ ]
 \begin{lstlisting}[language=C++]
 int infinite = (int)1e9;
 
@@ -1919,8 +1925,8 @@ vi dijkstra2(int V, vii adj[], int S)
 
 \end{lstlisting}
 \end{multicols}
-Bridge Edges
 \begin{multicols}{2}
+[\subsection{BRIDGE EDGES}\ ]
 \begin{lstlisting}[language=C++]
 vector<bool> visited;
 vector<int> t;
@@ -1975,8 +1981,8 @@ set<pair<int, int>> bridge_edges(int V, vector<int> adj[])
 
 \end{lstlisting}
 \end{multicols}
-Prim
 \begin{multicols}{2}
+[\subsection{PRIM}\ ]
 \begin{lstlisting}[language=C++]
 int spanningTreePrim(int V, vector<vector<int>> adj[])
 {
@@ -2020,8 +2026,8 @@ int spanningTreePrim(int V, vector<vector<int>> adj[])
 
 \end{lstlisting}
 \end{multicols}
-Kruskal
 \begin{multicols}{2}
+[\subsection{KRUSKAL}\ ]
 \begin{lstlisting}[language=C++]
 class ufds
 {
@@ -2113,8 +2119,8 @@ int spanningTreeKruskal(int V, vector<vector<int>> adj[])
 
 \end{lstlisting}
 \end{multicols}
-Bellman Ford
 \begin{multicols}{2}
+[\subsection{BELLMAN FORD}\ ]
 \begin{lstlisting}[language=C++]
 int infinite = (int)1e9;
 
@@ -2151,8 +2157,8 @@ vector<int> bellman_ford(int V, vector<vector<int>> &edges, int S)
 
 \end{lstlisting}
 \end{multicols}
-Max Flow
 \begin{multicols}{2}
+[\subsection{DINIC}\ ]
 \begin{lstlisting}[language=C++]
 template <typename flow_type>
 struct dinic
@@ -2236,8 +2242,8 @@ struct dinic
 
 \end{lstlisting}
 \end{multicols}
-Centroid Descomposition
 \begin{multicols}{2}
+[\subsection{CENTROID DESCOMPOSITION}\ ]
 \begin{lstlisting}[language=C++]
 const int MAXN = 2e5 + 5;
 
@@ -2305,8 +2311,150 @@ int32_t main()
 }
 \end{lstlisting}
 \end{multicols}
-Floyd Warshall
 \begin{multicols}{2}
+[\subsection{LOWER BOUND FLOW}\ ]
+\begin{lstlisting}[language=C++]
+
+template <typename T>
+struct dinic
+{
+    struct edge
+    {
+        int src, dst;
+        T low, cap, flow;
+        int rev;
+    };
+
+    int n;
+    vector<vector<edge>> adj;
+
+    dinic(int n) : n(n), adj(n + 2) {}
+
+    void add_edge(int src, int dst, T low, T cap)
+    {
+        adj[src].push_back({src, dst, low, cap, 0, (int)adj[dst].size()});
+        if (src == dst)
+            adj[src].back().rev++;
+        adj[dst].push_back({dst, src, 0, 0, 0, (int)adj[src].size() - 1});
+    }
+
+    vector<int> level, iter;
+
+    T augment(int u, int t, T cur)
+    {
+        if (u == t)
+            return cur;
+        for (int &i = iter[u]; i < (int)adj[u].size(); ++i)
+        {
+            edge &e = adj[u][i];
+            if (e.cap - e.flow > 0 && level[u] > level[e.dst])
+            {
+                T f = augment(e.dst, t, min(cur, e.cap - e.flow));
+                if (f > 0)
+                {
+                    e.flow += f;
+                    adj[e.dst][e.rev].flow -= f;
+                    return f;
+                }
+            }
+        }
+        return 0;
+    }
+
+    int bfs(int s, int t)
+    {
+        level.assign(n + 2, n + 2);
+        level[t] = 0;
+        queue<int> Q;
+        for (Q.push(t); !Q.empty(); Q.pop())
+        {
+            int u = Q.front();
+            if (u == s)
+                break;
+            for (edge &e : adj[u])
+            {
+                edge &erev = adj[e.dst][e.rev];
+                if (erev.cap - erev.flow > 0 && level[e.dst] > level[u] + 1)
+                {
+                    Q.push(e.dst);
+                    level[e.dst] = level[u] + 1;
+                }
+            }
+        }
+        return level[s];
+    }
+
+    const T oo = numeric_limits<T>::max();
+
+    T max_flow(int source, int sink)
+    {
+        vector<T> delta(n + 2);
+
+        for (int u = 0; u < n; ++u) // initialize
+            for (auto &e : adj[u])
+            {
+                delta[e.src] -= e.low;
+                delta[e.dst] += e.low;
+                e.cap -= e.low;
+                e.flow = 0;
+            }
+
+        T sum = 0;
+        int s = n, t = n + 1;
+
+        for (int u = 0; u < n; ++u)
+        {
+            if (delta[u] > 0)
+            {
+                add_edge(s, u, 0, delta[u]);
+                sum += delta[u];
+            }
+            else if (delta[u] < 0)
+                add_edge(u, t, 0, -delta[u]);
+        }
+
+        add_edge(sink, source, 0, oo);
+        T flow = 0;
+
+        while (bfs(s, t) < n + 2)
+        {
+            iter.assign(n + 2, 0);
+            for (T f; (f = augment(s, t, oo)) > 0;)
+                flow += f;
+        }
+
+        if (flow != sum)
+            return -1; // no solution
+
+        for (int u = 0; u < n; ++u)
+            for (auto &e : adj[u])
+            {
+                e.cap += e.low;
+                e.flow += e.low;
+                edge &erev = adj[e.dst][e.rev];
+                erev.cap -= e.low;
+                erev.flow -= e.low;
+            }
+
+        adj[sink].pop_back();
+        adj[source].pop_back();
+
+        while (bfs(source, sink) < n + 2)
+        {
+            iter.assign(n + 2, 0);
+            for (T f; (f = augment(source, sink, oo)) > 0;)
+                flow += f;
+        } // level[u] == n + 2 ==> s-side
+
+        return flow;
+    }
+};
+
+
+\end{lstlisting}
+\end{multicols}
+\begin{multicols}{2}
+[\subsection{FLOYD WARSHALL}\ ]
 \begin{lstlisting}[language=C++]
 int infinite = (int)1e8;
 
@@ -2340,8 +2488,8 @@ void find_path_k(vector<vector<bool>> &matrix, int k)
 
 \end{lstlisting}
 \end{multicols}
-Dfs Bfs
 \begin{multicols}{2}
+[\subsection{DFS BFS}\ ]
 \begin{lstlisting}[language=C++]
 void dfs_g(int n, int c, vi adj[], vector<bool> &visited, vi &cc)
 {
@@ -2398,8 +2546,8 @@ vi bfs(int node, int n, vi adj[])
 
 \end{lstlisting}
 \end{multicols}
-Scc Tarjans
 \begin{multicols}{2}
+[\subsection{SCC TARJANS}\ ]
 \begin{lstlisting}[language=C++]
 stack<int> q;
 vector<bool> mask;
@@ -2471,8 +2619,111 @@ void tarjans(int V, vector<int> adj[])
 
 \end{lstlisting}
 \end{multicols}
-Articulation Point
 \begin{multicols}{2}
+[\subsection{MIN COST MAX FLOW}\ ]
+\begin{lstlisting}[language=C++]
+
+template <typename flow_type, typename cost_type> struct min_cost_max_flow {
+	struct edge {
+		size_t src, dst, rev;
+		flow_type flow, cap;
+		cost_type cost;
+	};
+
+	int n;
+	vector<vector<edge>> adj;
+
+	min_cost_max_flow(int n) : n(n), adj(n), potential(n), dist(n), back(n) {}
+
+	void add_edge(size_t src, size_t dst, flow_type cap, cost_type cost) {
+		adj[src].push_back({src, dst, adj[dst].size(), 0, cap, cost});
+		if (src == dst)
+			adj[src].back().rev++;
+		adj[dst].push_back({dst, src, adj[src].size() - 1, 0, 0, -cost});
+	}
+
+	vector<cost_type> potential;
+
+	inline cost_type rcost(const edge &e) {
+		return e.cost + potential[e.src] - potential[e.dst];
+	}
+
+	void bellman_ford(int source) {
+		for (int k = 0; k < n; ++k)
+			for (int u = 0; u < n; ++u)
+				for (edge &e : adj[u])
+					if (e.cap > 0 && rcost(e) < 0)
+						potential[e.dst] += rcost(e);
+	}
+
+	const cost_type oo = numeric_limits<cost_type>::max();
+
+	vector<cost_type> dist;
+	vector<edge *> back;
+
+	cost_type dijkstra(int source, int sink) {
+		fill(dist.begin(), dist.end(), oo);
+
+		typedef pair<cost_type, int> node;
+		priority_queue<node, vector<node>, greater<node>> pq;
+
+		for (pq.push({dist[source] = 0, source}); !pq.empty();) {
+			node p = pq.top();
+			pq.pop();
+
+			if (dist[p.second] < p.first)
+				continue;
+			if (p.second == sink)
+				break;
+
+			for (edge &e : adj[p.second])
+				if (e.flow < e.cap && dist[e.dst] > dist[e.src] + rcost(e)) {
+					back[e.dst] = &e;
+					pq.push({dist[e.dst] = dist[e.src] + rcost(e), e.dst});
+				}
+		}
+
+		return dist[sink];
+	}
+
+	pair<flow_type, cost_type> max_flow(int source, int sink) {
+		flow_type flow = 0;
+		cost_type cost = 0;
+
+		for (int u = 0; u < n; ++u)
+			for (edge &e : adj[u])
+				e.flow = 0;
+
+		potential.assign(n, 0);
+		dist.assign(n, 0);
+		back.assign(n, nullptr);
+
+		bellman_ford(source); // remove negative costs
+
+		while (dijkstra(source, sink) < oo) {
+			for (int u = 0; u < n; ++u)
+				if (dist[u] < dist[sink])
+					potential[u] += dist[u] - dist[sink];
+
+			flow_type f = numeric_limits<flow_type>::max();
+
+			for (edge *e = back[sink]; e; e = back[e->src])
+				f = min(f, e->cap - e->flow);
+			for (edge *e = back[sink]; e; e = back[e->src])
+				e->flow += f, adj[e->dst][e->rev].flow -= f;
+
+			flow += f;
+			cost += f * (potential[sink] - potential[source]);
+		}
+		return {flow, cost};
+	}
+};
+
+
+\end{lstlisting}
+\end{multicols}
+\begin{multicols}{2}
+[\subsection{ARTICULATION POINT}\ ]
 \begin{lstlisting}[language=C++]
 vector<bool> visited;
 vi t;
@@ -2531,6 +2782,6 @@ void articulationPoints(int V, vi adj[])
 
 \end{lstlisting}
 \end{multicols}
-
+\enlargethispage*{\baselineskip}
 
 \end{document}

@@ -60,8 +60,8 @@ def build_tex(name, code):
 
         new_name += name[i]
 
-    s = new_name + '\n'
-    s += '\\begin{multicols}{2}\n'
+    s = '\\begin{multicols}{2}\n'
+    s += '[\\subsection{' + new_name.upper() + '}\\ ]\n'
     s += '\\begin{lstlisting}[language=C++]\n'
     s += code+'\n'
     s += '\\end{lstlisting}\n'
@@ -80,10 +80,21 @@ def build_reference(l):
     reference = template[0]
 
     for section, codes in l:
-        reference += ('\\section{'+section+'}\n')
+        new_section = ''
+
+        for i in range(len(section)-1):
+            new_section += section[i]
+            if section[i] == section[i].lower() and section[i+1] == section[i+1].upper():
+                new_section += ' '
+
+        new_section += section[-1]
+
+        reference += ('\\section{'+new_section.upper()+'}\n')
 
         for name, code in codes:
             reference += build_tex(name, code)
+
+        reference += '\enlargethispage*{\\baselineskip}'
 
     reference += template[1]
 
