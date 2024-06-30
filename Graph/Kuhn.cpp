@@ -35,7 +35,6 @@ typedef vector<pii> vii;
 
 const int MAXN = 1e3 + 5;
 
-vi ady_list[MAXN];
 
 int n, m;
 
@@ -70,7 +69,7 @@ int32_t main()
     {
         int a, b;
         cin >> a >> b;
-        ady_list[a].pb(b);
+        ady[a].pb(b);
     }
     int max_matching = 0;
 
