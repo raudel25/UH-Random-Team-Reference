@@ -1629,6 +1629,64 @@ vi suffixes(const string &s)
 \end{lstlisting}
 \end{multicols}
 \begin{multicols}{2}
+[\subsection{HASHING}\ ]
+\begin{lstlisting}[language=C++]
+struct custom_hash
+{
+    static uint64_t splitmix64(uint64_t x)
+    {
+        x += 0x9e3779b97f4a7c15;
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+        return x ^ (x >> 31);
+    }
+
+    size_t operator()(uint64_t x) const
+    {
+        static const uint64_t FIXED_RANDOM =
+            chrono::steady_clock::now().time_since_epoch().count();
+        return splitmix64(x + FIXED_RANDOM);
+    }
+};
+
+const int MAXN = 5e5 + 5;
+const int MOD = 1e9 + 7;
+int mod_pow(int b, int e)
+{
+    int res = 1;
+    while (e)
+    {
+        if (e & 1)
+            res = res * b % MOD;
+        b = b * b % MOD;
+        e >>= 1;
+    }
+    return res % MOD;
+}
+
+typedef unordered_map<ll, ll, custom_hash> safe_map;
+
+int dx[] = {1, 0, -1, 0, 1, -1, -1, 1};
+int dy[] = {0, 1, 0, -1, 1, 1, -1, -1};
+
+int dp[MAXN];
+vi ady_list[MAXN];
+
+int n, m, t, k;
+int f[MAXN];
+int comb(int n, int k)
+{
+    int fk = mod_pow(f[k], MOD - 2);
+    int fnk = mod_pow(f[n - k], MOD - 2);
+    int x = ((f[n] * fk) % MOD * fnk % MOD);
+
+    return x;
+}
+
+
+\end{lstlisting}
+\end{multicols}
+\begin{multicols}{2}
 [\subsection{KMP PF}\ ]
 \begin{lstlisting}[language=C++]
 vi prefix_function(string p)
