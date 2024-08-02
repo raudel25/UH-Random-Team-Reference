@@ -86,6 +86,47 @@ int32_t main()
 \end{multicols}
 \enlargethispage*{\baselineskip}\section{MATH}
 \begin{multicols}{2}
+[\subsection{DISCRETE LOG}\ ]
+\begin{lstlisting}[language=C++]
+
+int powmod(int a, int b, int m)
+{
+    int res = 1;
+    while (b > 0)
+    {
+        if (b & 1)
+        {
+            res = (res * 1ll * a) % m;
+        }
+        a = (a * 1ll * a) % m;
+        b >>= 1;
+    }
+    return res;
+}
+
+int discrete_log(int a, int b, int m)
+{
+    a %= m, b %= m;
+    int n = sqrt(m) + 1;
+    map<int, int> vals;
+    for (int p = 1; p <= n; ++p)
+        vals[powmod(a, p * n, m)] = p;
+    for (int q = 0; q <= n; ++q)
+    {
+        int cur = (powmod(a, q, m) * 1ll * b) % m;
+        if (vals.count(cur))
+        {
+            int ans = vals[cur] * n - q;
+            return ans;
+        }
+    }
+    return -1;
+}
+
+
+\end{lstlisting}
+\end{multicols}
+\begin{multicols}{2}
 [\subsection{NTT}\ ]
 \begin{lstlisting}[language=C++]
 using ll = long long;
@@ -281,6 +322,47 @@ vector<point> convolve(vector<point> &a, vector<point> &b)
     return c;
 }
 
+
+\end{lstlisting}
+\end{multicols}
+\begin{multicols}{2}
+[\subsection{PRIMITIVE ROOT}\ ]
+\begin{lstlisting}[language=C++]
+int powmod(int a, int b, int p)
+{
+    int res = 1;
+    while (b)
+        if (b & 1)
+            res = int32_t(res * 1ll * a % p), --b;
+        else
+            a = int32_t(a * 1ll * a % p), b >>= 1;
+    return res;
+}
+
+int generator(int p)
+{
+    vector<int> fact;
+    int phi = p - 1, n = phi;
+    for (int i = 2; i * i <= n; ++i)
+        if (n % i == 0)
+        {
+            fact.push_back(i);
+            while (n % i == 0)
+                n /= i;
+        }
+    if (n > 1)
+        fact.push_back(n);
+
+    for (int res = 2; res <= p; ++res)
+    {
+        bool ok = true;
+        for (size_t i = 0; i < fact.size() && ok; ++i)
+            ok &= powmod(res, phi / fact[i], p) != 1;
+        if (ok)
+            return res;
+    }
+    return -1;
+}
 
 \end{lstlisting}
 \end{multicols}
@@ -556,6 +638,25 @@ vector<T> FWHT_XOR(vector<T> a, vector<T> b)
     return a;
 }
 
+
+\end{lstlisting}
+\end{multicols}
+\begin{multicols}{2}
+[\subsection{EXTENDED EUCLIDEAN ALGORITHM}\ ]
+\begin{lstlisting}[language=C++]
+int gcd(int a, int b, int &x, int &y)
+{
+    x = 1, y = 0;
+    int x1 = 0, y1 = 1, a1 = a, b1 = b;
+    while (b1)
+    {
+        int q = a1 / b1;
+        tie(x, x1) = make_tuple(x1, x - q * x1);
+        tie(y, y1) = make_tuple(y1, y - q * y1);
+        tie(a1, b1) = make_tuple(b1, a1 - q * b1);
+    }
+    return a1;
+}
 
 \end{lstlisting}
 \end{multicols}
@@ -1350,6 +1451,66 @@ public:
         return _size;
     }
 };
+
+\end{lstlisting}
+\end{multicols}
+\begin{multicols}{2}
+[\subsection{MOS}\ ]
+\begin{lstlisting}[language=C++]
+
+void remove(int idx); // TODO: remove value at idx from data structure
+void add(int idx);    // TODO: add value at idx from data structure
+int get_answer();     // TODO: extract the current answer of the data structure
+
+int block_size;
+
+struct Query
+{
+    int l, r, idx;
+    bool operator<(Query other) const
+    {
+        return make_pair(l / block_size, r) <
+               make_pair(other.l / block_size, other.r);
+    }
+};
+
+vector<int> mo_s_algorithm(vector<Query> queries)
+{
+    vector<int> answers(queries.size());
+    sort(queries.begin(), queries.end());
+
+    // TODO: initialize data structure
+
+    int cur_l = 0;
+    int cur_r = -1;
+    // invariant: data structure will always reflect the range [cur_l, cur_r]
+    for (Query q : queries)
+    {
+        while (cur_l > q.l)
+        {
+            cur_l--;
+            add(cur_l);
+        }
+        while (cur_r < q.r)
+        {
+            cur_r++;
+            add(cur_r);
+        }
+        while (cur_l < q.l)
+        {
+            remove(cur_l);
+            cur_l++;
+        }
+        while (cur_r > q.r)
+        {
+            remove(cur_r);
+            cur_r--;
+        }
+        answers[q.idx] = get_answer();
+    }
+    return answers;
+}
+
 
 \end{lstlisting}
 \end{multicols}
