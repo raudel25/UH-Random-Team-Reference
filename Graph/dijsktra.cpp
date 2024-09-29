@@ -67,8 +67,8 @@ vi dijkstra2(int V, vii adj[], int S)
         auto [d, u] = q.top();
         q.pop();
 
-        if (d > dist[act])
-            continue;
+        if (d > dist[u])
+          continue;
 
         for (auto &[v, w] : adj[u])
         {
