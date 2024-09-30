@@ -33,14 +33,20 @@ typedef vector<int> vi;
 typedef vector<ll> vll;
 typedef vector<pii> vii;
 
-const int MAXN = 1e3 + 5;
+// begin
 
+const int MAXN = 2 * 1e5 + 5;
 
 int n, m;
 
 vi mt;
 vi ady[MAXN];
 vector<bool> used;
+vector<bool> visitedx;
+vector<bool> visitedy;
+
+vector<bool> coverx;
+vector<bool> covery;
 
 bool try_kuhn(int v)
 {
@@ -56,6 +62,25 @@ bool try_kuhn(int v)
         }
     }
     return false;
+}
+
+void augm_path(int n, bool isX)
+{
+    if (isX)
+        visitedx[n] = true;
+    else
+        visitedy[n] = true;
+
+    if (!isX)
+    {
+        if (!visitedx[mt[n]])
+            augm_path(mt[n], true);
+        return;
+    }
+
+    for (auto i : ady[n])
+        if (!visitedy[i])
+            augm_path(i, false);
 }
 
 int32_t main()
@@ -75,13 +100,40 @@ int32_t main()
 
     mt.assign(m + 1, -1);
     int ans = 0;
-    forl(v, 1, n)
+    for (int v = 1; v <= n; v++)
     {
         used.assign(n + 1, false);
         if (try_kuhn(v))
             max_matching++;
     }
 
+    // vertex cover
+
+    visitedx.assign(n + 1, false);
+    visitedy.assign(m + 1, false);
+
+    used.assign(n + 1, false);
+    for (int v = 1; v <= m; v++)
+        if (mt[v] != -1)
+            used[mt[v]] = true;
+
+    for (int v = 1; v <= n; v++)
+        if (!used[v] && !visitedx[v])
+            augm_path(v, true);
+
+    coverx.assign(n + 1, false);
+    covery.assign(m + 1, false);
+
+    for (int v = 1; v <= n; v++)
+        if (!visitedx[v])
+            coverx[v] = true;
+
+    for (int v = 1; v <= m; v++)
+        if (visitedy[v])
+            covery[v] = true;
+
     cout << max_matching << '\n';
     return 0;
 }
+
+// end
