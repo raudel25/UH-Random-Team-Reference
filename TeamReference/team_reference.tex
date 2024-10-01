@@ -1659,7 +1659,8 @@ private:
             temp_ra[sa[0]] = r = 0;
 
             for (int i = 1; i < n; i++)
-                temp_ra[sa[i]] = (ra[sa[i]] == ra[sa[i - 1]] && ra[sa[i] + k] == ra[sa[i - 1] + k]) ? r : ++r;
+                temp_ra[sa[i]] = (ra[sa[i]] == 
+                    ra[sa[i - 1]] && ra[sa[i] + k] == ra[sa[i - 1] + k]) ? r : ++r;
 
             for (int i = 0; i < n; i++)
                 ra[i] = temp_ra[i];
@@ -2135,8 +2136,8 @@ vi dijkstra2(int V, vii adj[], int S)
         auto [d, u] = q.top();
         q.pop();
 
-        if (d > dist[act])
-            continue;
+        if (d > dist[u])
+          continue;
 
         for (auto &[v, w] : adj[u])
         {
@@ -2170,6 +2171,7 @@ int main()
 
     return 0;
 }
+
 \end{lstlisting}
 \end{multicols}
 \begin{multicols}{2}
@@ -2870,8 +2872,11 @@ void tarjans(int V, vector<int> adj[])
 [\subsection{MIN COST MAX FLOW}\ ]
 \begin{lstlisting}[language=C++]
 
-template <typename flow_type, typename cost_type> struct min_cost_max_flow {
-	struct edge {
+template <typename flow_type, typename cost_type>
+struct min_cost_max_flow
+{
+	struct edge
+	{
 		size_t src, dst, rev;
 		flow_type flow, cap;
 		cost_type cost;
@@ -2882,7 +2887,8 @@ template <typename flow_type, typename cost_type> struct min_cost_max_flow {
 
 	min_cost_max_flow(int n) : n(n), adj(n), potential(n), dist(n), back(n) {}
 
-	void add_edge(size_t src, size_t dst, flow_type cap, cost_type cost) {
+	void add_edge(size_t src, size_t dst, flow_type cap, cost_type cost)
+	{
 		adj[src].push_back({src, dst, adj[dst].size(), 0, cap, cost});
 		if (src == dst)
 			adj[src].back().rev++;
@@ -2891,11 +2897,13 @@ template <typename flow_type, typename cost_type> struct min_cost_max_flow {
 
 	vector<cost_type> potential;
 
-	inline cost_type rcost(const edge &e) {
+	inline cost_type rcost(const edge &e)
+	{
 		return e.cost + potential[e.src] - potential[e.dst];
 	}
 
-	void bellman_ford(int source) {
+	void bellman_ford(int source)
+	{
 		for (int k = 0; k < n; ++k)
 			for (int u = 0; u < n; ++u)
 				for (edge &e : adj[u])
@@ -2908,13 +2916,15 @@ template <typename flow_type, typename cost_type> struct min_cost_max_flow {
 	vector<cost_type> dist;
 	vector<edge *> back;
 
-	cost_type dijkstra(int source, int sink) {
+	cost_type dijkstra(int source, int sink)
+	{
 		fill(dist.begin(), dist.end(), oo);
 
 		typedef pair<cost_type, int> node;
 		priority_queue<node, vector<node>, greater<node>> pq;
 
-		for (pq.push({dist[source] = 0, source}); !pq.empty();) {
+		for (pq.push({dist[source] = 0, source}); !pq.empty();)
+		{
 			node p = pq.top();
 			pq.pop();
 
@@ -2924,16 +2934,20 @@ template <typename flow_type, typename cost_type> struct min_cost_max_flow {
 				break;
 
 			for (edge &e : adj[p.second])
-				if (e.flow < e.cap && dist[e.dst] > dist[e.src] + rcost(e)) {
+				if (e.flow < e.cap && dist[e.dst] >
+						dist[e.src] + rcost(e))
+				{
 					back[e.dst] = &e;
-					pq.push({dist[e.dst] = dist[e.src] + rcost(e), e.dst});
+					pq.push({dist[e.dst] =
+						dist[e.src] + rcost(e), e.dst});
 				}
 		}
 
 		return dist[sink];
 	}
 
-	pair<flow_type, cost_type> max_flow(int source, int sink) {
+	pair<flow_type, cost_type> max_flow(int source, int sink)
+	{
 		flow_type flow = 0;
 		cost_type cost = 0;
 
@@ -2947,7 +2961,8 @@ template <typename flow_type, typename cost_type> struct min_cost_max_flow {
 
 		bellman_ford(source); // remove negative costs
 
-		while (dijkstra(source, sink) < oo) {
+		while (dijkstra(source, sink) < oo)
+		{
 			for (int u = 0; u < n; ++u)
 				if (dist[u] < dist[sink])
 					potential[u] += dist[u] - dist[sink];

@@ -103,7 +103,8 @@ private:
             temp_ra[sa[0]] = r = 0;
 
             for (int i = 1; i < n; i++)
-                temp_ra[sa[i]] = (ra[sa[i]] == ra[sa[i - 1]] && ra[sa[i] + k] == ra[sa[i - 1] + k]) ? r : ++r;
+                temp_ra[sa[i]] = (ra[sa[i]] == 
+                    ra[sa[i - 1]] && ra[sa[i] + k] == ra[sa[i - 1] + k]) ? r : ++r;
 
             for (int i = 0; i < n; i++)
                 ra[i] = temp_ra[i];
